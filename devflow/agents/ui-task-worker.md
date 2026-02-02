@@ -151,6 +151,28 @@ When completing a task, return:
 - If a shared component is needed but missing, create it in `shared/components/`
 - If the design system/tokens file is missing, use DaisyUI defaults
 
+## Self-Review Protocol
+
+Before reporting a task as complete, perform a self-review:
+
+1. **Re-read acceptance criteria**: Open the task file and check each criterion individually.
+2. **Accessibility check**: Verify all interactive elements have accessible names, keyboard navigation works, and focus is visible.
+3. **Responsive behavior**: Confirm the component renders correctly at mobile (320px), tablet (768px), and desktop (1024px) widths.
+4. **Component isolation**: Verify the component works with: sample data, empty data, loading state, and error state.
+
+Append to the UI Task Summary:
+
+```markdown
+### Self-Review
+- Acceptance criteria: X/Y met, Z gaps: [list gaps or "none"]
+- Tests: X passing, Y failing
+- Pattern compliance: [compliant / N deviations noted]
+- Known limitations: [list or "none"]
+- Confidence: HIGH / MEDIUM / LOW
+```
+
+If accessibility is incomplete or states are unhandled, confidence must be MEDIUM or LOW.
+
 ## Important Rules
 
 - Never inline styles — use Tailwind classes or DaisyUI component classes

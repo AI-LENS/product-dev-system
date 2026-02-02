@@ -187,6 +187,17 @@ project-root/
 |------|------------|--------|------------|
 | {risk description} | {Low/Medium/High} | {Low/Medium/High} | {mitigation strategy} |
 
+## Requirement Coverage Matrix
+
+| FR ID | Requirement Title | Plan Section | Addressed | Notes |
+|-------|------------------|-------------|-----------|-------|
+| FR-{xxx} | {title} | {section name} | YES / NO / GAP | {explanation if GAP} |
+| FR-{xxx} | {title} | {section name} | YES / NO / GAP | {explanation if GAP} |
+
+**Coverage: {X}/{Y} functional requirements addressed ({Z}%)**
+
+Unaddressed requirements must be justified (out-of-scope for this phase, deferred, etc.) or they will be flagged as BLOCKs during the plan gate.
+
 ## Implementation Order
 
 1. **Phase 1:** Project setup, database models, migrations

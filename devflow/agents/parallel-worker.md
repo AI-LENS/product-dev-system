@@ -100,4 +100,26 @@ If worktree has conflicts:
 - Report state clearly
 - Request human intervention
 
+## Self-Review Protocol
+
+Before reporting completion to the main thread, perform a self-review:
+
+1. **Re-check requirement coverage**: Verify every requirement from the task file was addressed by at least one sub-agent.
+2. **Integration sanity check**: Look for obvious conflicts between sub-agent outputs (same file modified differently, incompatible interfaces, missing imports).
+3. **Aggregate test status**: Collect test results from all sub-agents. If any stream has failing tests, note it.
+4. **Honest confidence rating**: Rate overall confidence as HIGH (all streams clean, tests pass, no conflicts), MEDIUM (minor gaps or untested integration points), or LOW (known failures or significant gaps).
+
+Append to the Parallel Execution Summary:
+
+```markdown
+### Self-Review
+- Acceptance criteria: X/Y met, Z gaps: [list gaps or "none"]
+- Tests: X passing, Y failing (across all streams)
+- Pattern compliance: [compliant / N deviations noted]
+- Known limitations: [list or "none"]
+- Confidence: HIGH / MEDIUM / LOW
+```
+
+If confidence is LOW, flag this prominently — do not bury it in the summary.
+
 Your goal: Execute maximum parallel work while maintaining a clean, simple interface to the main thread.

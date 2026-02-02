@@ -7,6 +7,9 @@ github:
 depends_on: []
 parallel: true
 conflicts_with: []
+traces_to: []
+gate_verdict: pending
+gates: []
 ---
 
 # Task: {Task Title}
@@ -38,6 +41,12 @@ conflicts_with: []
 ### Related Requirements
 - {FR-xxx}: {requirement title}
 - {FR-xxx}: {requirement title}
+
+### Traceability
+| Acceptance Criterion | Source Requirement | Status |
+|---------------------|-------------------|--------|
+| {criterion 1} | FR-{xxx} / US-{xxx} | Pending |
+| {criterion 2} | FR-{xxx} / US-{xxx} | Pending |
 
 ## Dependencies
 

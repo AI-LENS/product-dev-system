@@ -104,6 +104,28 @@ When completing a task, return:
 - If model conflicts are detected, stop and report to the main thread
 - If the database is unreachable, note it and complete what can be done offline (model files, migration files)
 
+## Self-Review Protocol
+
+Before reporting a task as complete, perform a self-review:
+
+1. **Re-read acceptance criteria**: Open the task file and check each criterion individually.
+2. **Migration round-trip**: Verify migration runs up AND down cleanly (`alembic upgrade head && alembic downgrade -1 && alembic upgrade head`).
+3. **Foreign key and index audit**: Verify all foreign keys have corresponding indexes. Check that frequently queried columns are indexed.
+4. **Data loss risk assessment**: For any column drops, type changes, or constraint additions — assess whether existing data would be lost or invalidated.
+
+Append to the Database Task Summary:
+
+```markdown
+### Self-Review
+- Acceptance criteria: X/Y met, Z gaps: [list gaps or "none"]
+- Tests: X passing, Y failing
+- Pattern compliance: [compliant / N deviations noted]
+- Known limitations: [list or "none"]
+- Confidence: HIGH / MEDIUM / LOW
+```
+
+If migration downgrade fails or data loss risk exists, confidence must be MEDIUM or LOW — never HIGH.
+
 ## Important Rules
 
 - Never modify a migration that has already been applied to a shared environment

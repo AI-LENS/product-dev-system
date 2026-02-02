@@ -99,6 +99,25 @@ prd: {prd-reference}
 - {Unresolved question 1}
 - {Unresolved question 2}
 
+## Traceability Index
+
+### PRD Feature → User Story Mapping
+
+| PRD Feature | User Stories | Coverage |
+|-------------|-------------|----------|
+| {feature 1} | US-{xxx}, US-{xxx} | Complete / Partial / Missing |
+| {feature 2} | US-{xxx} | Complete / Partial / Missing |
+
+### User Story → Functional Requirement Mapping
+
+| User Story | Functional Requirements | Coverage |
+|------------|------------------------|----------|
+| US-{xxx} | FR-{xxx}, FR-{xxx} | Complete / Partial / Missing |
+| US-{xxx} | FR-{xxx} | Complete / Partial / Missing |
+
+**Forward coverage: {X}% of PRD features have user stories**
+**Requirement coverage: {X}% of user stories have functional requirements**
+
 ## References
 
 - PRD: {prd-reference}

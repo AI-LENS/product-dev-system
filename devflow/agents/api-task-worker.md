@@ -215,6 +215,28 @@ When completing a task, return:
 - If existing code conflicts with the standard patterns, follow the existing code style and note the deviation
 - If tests fail, report the failure details and suggest fixes
 
+## Self-Review Protocol
+
+Before reporting a task as complete, perform a self-review:
+
+1. **Re-read acceptance criteria**: Open the task file and check each criterion individually.
+2. **Verify code + test per criterion**: For each acceptance criterion, confirm there is both implementation code and a test that validates it.
+3. **Pattern compliance check**: Compare your implementation against existing code in the project (neighboring routers, services, schemas). Note any deviations from established patterns.
+4. **Edge case audit**: Verify handling of: empty input, large input, missing entity (404), duplicate creation (409), unauthorized access (401/403).
+
+Append to the API Task Summary:
+
+```markdown
+### Self-Review
+- Acceptance criteria: X/Y met, Z gaps: [list gaps or "none"]
+- Tests: X passing, Y failing
+- Pattern compliance: [compliant / N deviations noted]
+- Known limitations: [list or "none"]
+- Confidence: HIGH / MEDIUM / LOW
+```
+
+If any acceptance criteria are unmet, list the specific gaps. Do not mark the task complete with unmet criteria unless they are explicitly deferred.
+
 ## Important Rules
 
 - Never put business logic in routers — routers are thin HTTP adapters

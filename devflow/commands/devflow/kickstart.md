@@ -20,6 +20,7 @@ Run the entire Brainstorming Phase sequentially. Adapts its pipeline based on sc
 - `devflow/rules/github-operations.md`
 - `devflow/rules/spec-standards.md`
 - `devflow/rules/principles-standards.md`
+- `devflow/rules/elite-dev-protocol.md`
 
 ## Preflight Checklist
 
@@ -122,6 +123,14 @@ Write to `devflow/prds/<name>.md` with frontmatter including `scope: <scope>`.
 
 - **If exists:** Print: `PRD for <name> already exists. Skipping. Run /pm:prd-edit <name> to modify.`
 
+### Step 4a: Gate — PRD
+
+Run `/devflow:gate prd <name>`.
+
+- **BLOCK:** Fix the issues identified in the gate report, update the PRD, and re-run the gate.
+- **CONCERN:** Present concerns to the user. They choose: proceed, iterate on the PRD, or deep-dive into a specific concern.
+- **PASS:** Continue to next step.
+
 ### Step 5: Spec
 
 Check if `devflow/specs/<name>.md` exists.
@@ -161,6 +170,14 @@ Write to `devflow/specs/<name>.md` with proper frontmatter.
 Present to user for review.
 
 - **If exists:** Print: `Spec for <name> already exists. Skipping.`
+
+### Step 5a: Gate — Spec
+
+Run `/devflow:gate spec <name>`.
+
+- **BLOCK:** Fix the issues (e.g., dropped PRD features, untestable criteria), update the spec, and re-run the gate.
+- **CONCERN:** Present concerns to the user. They choose: proceed, iterate, or deep-dive.
+- **PASS:** Continue.
 
 ### Step 6: Clarify (optional)
 
@@ -215,6 +232,14 @@ Present plan to user for review.
 
 - **If exists:** Print: `Technical plan for <name> already exists. Skipping.`
 
+### Step 8a: Gate — Plan
+
+Run `/devflow:gate plan <name>`.
+
+- **BLOCK:** Fix the issues (e.g., unaddressed FRs, empty risk section), update the plan, and re-run the gate.
+- **CONCERN:** Present concerns to the user. They choose: proceed, iterate, or deep-dive.
+- **PASS:** Continue.
+
 ### Step 9: Design (conditional)
 
 **Scope: library** — Skip entirely. Print: `Library scope — no design phase.`
@@ -258,6 +283,14 @@ Check if `devflow/epics/<name>/epic.md` exists.
 
 - **If exists:** Print: `Epic for <name> already exists. Skipping.`
 
+### Step 10a: Gate — Epic
+
+Run `/devflow:gate epic <name>`.
+
+- **BLOCK:** Fix the issues (e.g., cyclic dependencies, missing traces_to, parallel file conflicts), update tasks, and re-run the gate.
+- **CONCERN:** Present concerns to the user. They choose: proceed, iterate, or deep-dive.
+- **PASS:** Continue.
+
 ### Step 11: Epic Sync
 
 Ask the user: "Push tasks to GitHub as issues?"
@@ -267,7 +300,7 @@ Ask the user: "Push tasks to GitHub as issues?"
 
 ### Step 12: Summary
 
-Print a summary of all artifacts created:
+Print a summary of all artifacts created, including gate results:
 
 ```
 Brainstorming Phase Complete
@@ -282,6 +315,17 @@ Artifacts created:
   - Tasks:  devflow/epics/<name>/001.md ... NNN.md
   - GitHub: [X issues created] (if synced)
   - Design: [listed if created, or "skipped"]
+
+Gate Results:
+  - gate:prd   — [PASS|CONCERN|BLOCK]
+  - gate:spec  — [PASS|CONCERN|BLOCK]
+  - gate:plan  — [PASS|CONCERN|BLOCK]
+  - gate:epic  — [PASS|CONCERN|BLOCK]
+
+Traceability:
+  - PRD Features → Spec US: [X]% coverage
+  - Spec FR → Plan Sections: [X]% coverage
+  - Plan Sections → Tasks: [X]% coverage
 ```
 
 Then suggest next steps based on scope:

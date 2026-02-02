@@ -24,6 +24,7 @@ Where `<name>` matches the name used in `/devflow:kickstart <name>`.
 - `devflow/rules/worktree-operations.md`
 - `devflow/rules/branch-operations.md`
 - `devflow/rules/test-execution.md`
+- `devflow/rules/elite-dev-protocol.md`
 
 ## Preflight Checklist
 
@@ -101,6 +102,14 @@ Ask: "Bootstrap the project? This scaffolds the codebase from scratch."
 **Scope: library** — Skip. Print: `Library scope — project already exists. Skipping bootstrap.`
 If the library doesn't have a package structure yet, suggest: "Run `/init:project` manually if you need scaffolding."
 
+#### Step 2a: Gate — Bootstrap (product scope only)
+
+Run `/devflow:gate bootstrap <name>`.
+
+- **BLOCK:** Fix the issues (server won't start, DB won't connect, structure mismatch), and re-run the gate.
+- **CONCERN:** Present concerns to the user. They choose: proceed or fix.
+- **PASS:** Continue.
+
 ### Step 3: Build
 
 Ask: "Launch parallel agents to build?"
@@ -122,10 +131,23 @@ Ask: "Launch parallel agents to build?"
      - `api-task-worker` — core module implementations
      - `test-runner` — test suite alongside implementation
 
-  2. Monitor progress: `/pm:status` after agents complete
-  3. If any tasks remain open: `/pm:blocked` to identify issues
+  2. **Per-task gate**: After each task completes, run `/devflow:gate task <name>` for that task.
+     - If BLOCK: pause the work stream for that task, report to user.
+     - If CONCERN: log and continue.
+     - If PASS: continue to next task.
+  3. Run task tests immediately after each task completes (incremental testing).
+  4. Monitor progress: `/pm:status` after agents complete
+  5. If any tasks remain open: `/pm:blocked` to identify issues
 
 - **If skip:** Continue. User can run `/pm:epic-start <name>` later.
+
+#### Step 3a: Gate — Build (aggregate)
+
+After all tasks complete, run `/devflow:gate build <name>`.
+
+- **BLOCK:** Integration issues between tasks, missing tasks, or test failures. Fix and re-run.
+- **CONCERN:** Present to user. They choose: proceed or fix.
+- **PASS:** Continue.
 
 ### Step 4: Test
 
@@ -157,6 +179,14 @@ Ask: "Run tests?"
 
 - **If skip:** Continue.
 
+#### Step 4a: Gate — Test
+
+Run `/devflow:gate test <name>`.
+
+- **BLOCK:** Coverage below threshold, test failures, or flaky tests. Fix and re-run.
+- **CONCERN:** Present to user.
+- **PASS:** Continue.
+
 ### Step 5: Quality
 
 Ask: "Run quality checks?"
@@ -169,6 +199,14 @@ Ask: "Run quality checks?"
   3. If issues found: present issues, ask user whether to fix or continue
 
 - **If skip:** Continue.
+
+#### Step 5a: Gate — Quality
+
+Run `/devflow:gate quality <name>`.
+
+- **BLOCK:** Lint errors, high/critical security findings, or secrets in code. Fix and re-run.
+- **CONCERN:** Present to user.
+- **PASS:** Continue.
 
 ### Step 6: Review
 
@@ -200,6 +238,14 @@ Ask: "Run review checklist?"
   3. If issues: fix and re-review
 
 - **If skip:** Continue.
+
+#### Step 6a: Gate — Review
+
+Run `/devflow:gate review <name>`.
+
+- **BLOCK:** Unaddressed checklist items, unresolved review comments. Fix and re-run.
+- **CONCERN:** Present to user.
+- **PASS:** Continue.
 
 ### Step 7: Ship
 
@@ -236,7 +282,7 @@ Ask: "Ready to ship?"
 
 ### Step 8: Summary
 
-Print final summary:
+Print final summary including gate results and traceability:
 
 ```
 Execution Phase Complete
@@ -250,6 +296,19 @@ Results:
   Quality:    <clean|X issues|skipped>
   Review:     <approved|X items open|skipped>
   Ship:       <deployed|ready to deploy|skipped>
+
+Gate Results:
+  - gate:bootstrap — [PASS|CONCERN|BLOCK|skipped]
+  - gate:task      — [X/Y tasks passed]
+  - gate:build     — [PASS|CONCERN|BLOCK]
+  - gate:test      — [PASS|CONCERN|BLOCK|skipped]
+  - gate:quality   — [PASS|CONCERN|BLOCK|skipped]
+  - gate:review    — [PASS|CONCERN|BLOCK|skipped]
+
+Traceability Summary:
+  - FR → Task coverage: [X]%
+  - Tasks with traces_to: [X]/[Y]
+  - Acceptance criteria met: [X]/[Y]
 
 Open items:
   - [list any remaining tasks, failures, or issues]
