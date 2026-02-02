@@ -1,0 +1,45 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(bash devflow/scripts/pm/*)",
+      "Bash(devflow/scripts/pm/*)",
+      "Bash(bash devflow/scripts/common/*)",
+
+      "Bash(cat:*)",
+      "Bash(composer:*)",
+      "Bash(fi)",
+      "Bash(find:*)",
+      "Bash(gh:*)",
+      "Bash(git:*)",
+      "Bash(grep:*)",
+      "Bash(kill:*)",
+      "Bash(ln:*)",
+      "Bash(ls:*)",
+      "Bash(mv:*)",
+      "Bash(npm:*)",
+      "Bash(npx:*)",
+      "Bash(pnpm:*)",
+      "Bash(pytest:*)",
+      "Bash(python:*)",
+      "Bash(python3:*)",
+      "Bash(pip:*)",
+      "Bash(pip3:*)",
+      "Bash(uvicorn:*)",
+      "Bash(alembic:*)",
+      "Bash(ruff:*)",
+      "Bash(ng:*)",
+      "Bash(cargo:*)",
+      "Bash(go:*)",
+      "Bash(make:*)",
+      "Bash(rm:*)",
+      "Bash(sed:*)",
+      "Bash(touch:*)",
+      "Bash(tree:*)",
+      "Bash(docker:*)",
+      "Bash(docker-compose:*)",
+      "List(**)",
+      "WebFetch(domain:github.com)",
+      "WebSearch"
+    ]
+  }
+}
