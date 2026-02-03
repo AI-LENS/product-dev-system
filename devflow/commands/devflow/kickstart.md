@@ -315,6 +315,56 @@ Run `/devflow:gate plan <name>`.
 Check if `devflow/epics/<name>/epic.md` exists.
 - **If missing:** Run `/pm:epic-decompose <name>` logic, adapted by scope:
 
+**For large applications (15+ tasks or scope=product)**, organize tasks into phases:
+
+```markdown
+## Development Phases
+
+### Phase 1: Foundation
+Priority: P1 (must complete first)
+Tasks: 001-005
+- Database schema & migrations
+- Core models & base classes
+- API scaffolding
+- Auth/security setup
+- Health checks & config
+
+### Phase 2: Core Features
+Priority: P1
+Depends on: Phase 1
+Tasks: 006-013
+- Primary business logic
+- Core API endpoints
+- Essential services
+
+### Phase 3: Secondary Features
+Priority: P2
+Depends on: Phase 2
+Tasks: 014-019
+- Additional endpoints
+- Integrations
+- Background processing
+
+### Phase 4: Frontend
+Priority: P2
+Depends on: Phase 2 (API contracts)
+Tasks: 020-026
+- Components & pages
+- State management
+- API integration
+
+### Phase 5: Polish
+Priority: P3
+Depends on: Phase 3, 4
+Tasks: 027-030
+- Error handling
+- Logging & monitoring
+- Performance tuning
+- Documentation
+```
+
+Each task file should include `phase: <N>` in frontmatter.
+
 **Scope: product**
 - First decompose into features (one epic per major feature)
 - Then decompose each feature into parallelizable tasks

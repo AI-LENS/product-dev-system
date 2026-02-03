@@ -108,7 +108,9 @@ Or run all at once: `/devflow:execute <name>`
 
 **Elite workflow:** Build → Test → Deploy locally → Verify → Repeat
 
-**Continuous testing:** Tests run after each task, each feature, and periodically (full suite every 3-5 features).
+**Phased development:** Large apps (15+ tasks) are broken into phases. Each phase must pass all tests before the next begins.
+
+**Continuous testing:** Tests run after each task, each feature, and at phase gates.
 
 **Resumable:** If interrupted, run the same command again - it checks task status and continues.
 

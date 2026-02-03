@@ -67,6 +67,118 @@ Where `<name>` matches the name used in `/devflow:kickstart <name>`.
 | Review | PR checklist per epic | PR checklist | PR checklist + API review |
 | Ship | Full deploy (CI/CD + Docker + env + monitoring) | Feature deploy (branch merge) | Publish (package build + publish + docs) |
 
+## Phased Development (Large Applications)
+
+**For large applications**, break into logical phases. Complete and test each phase before starting the next.
+
+### Phase Detection
+
+At the start of execution, analyze the epic to determine if phased development is needed:
+
+```
+Task count > 15 OR estimated complexity = high → Use phased development
+```
+
+Ask user: "This is a large application. Break into phases?"
+- **Yes:** Continue with phased approach
+- **No:** Build all at once (not recommended for large apps)
+
+### Phase Breakdown
+
+Group tasks into logical phases based on dependencies and functionality:
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 Development Phases for: <name>
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Phase 1: Foundation (5 tasks)
+  - Database schema & migrations
+  - Core models
+  - Base API structure
+  - Auth setup
+  - Health checks
+
+Phase 2: Core Features (8 tasks)
+  - User management
+  - Primary business logic
+  - Core API endpoints
+
+Phase 3: Secondary Features (6 tasks)
+  - Additional endpoints
+  - Integrations
+  - Background jobs
+
+Phase 4: UI/Frontend (7 tasks)
+  - Components
+  - Pages
+  - State management
+
+Phase 5: Polish & Production (4 tasks)
+  - Error handling
+  - Logging/monitoring
+  - Performance optimization
+  - Documentation
+
+Total: 30 tasks across 5 phases
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+### Phase Execution Loop
+
+For each phase:
+
+```
+┌─────────────────────────────────────────────┐
+│  PHASE X: <phase_name>                      │
+├─────────────────────────────────────────────┤
+│  1. Build all tasks in phase                │
+│  2. Run unit tests for phase                │
+│  3. Run integration tests for phase         │
+│  4. Deploy locally & verify                 │
+│  5. Run full regression suite               │
+│  6. User sign-off: "Phase X complete?"      │
+│  7. ✓ CHECKPOINT: Phase locked              │
+│  8. Proceed to next phase                   │
+└─────────────────────────────────────────────┘
+```
+
+### Phase Gate (Mandatory)
+
+**Before moving to next phase**, ALL must pass:
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🚦 Phase Gate: Phase 2 - Core Features
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Checklist:
+  ✓ All 8 tasks completed
+  ✓ Unit tests: 45/45 passed
+  ✓ Integration tests: 12/12 passed
+  ✓ Full regression: 67/67 passed (includes Phase 1)
+  ✓ Local deployment verified
+  ✓ No critical bugs open
+  ✓ Code review passed
+
+Phase Status: ✅ PASSED
+
+Ready to proceed to Phase 3: Secondary Features?
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+**If any check fails:** Stop. Fix issues. Re-run gate. Do NOT proceed with failures.
+
+### Phase Rollback
+
+If a phase introduces critical bugs:
+
+1. Identify which phase introduced the issue
+2. Roll back to last stable phase checkpoint
+3. Fix the issue
+4. Re-run phase from beginning
+5. Pass gate before continuing
+
 ## Elite Developer Workflow
 
 **Build → Test → Deploy Locally → Verify → Repeat**
