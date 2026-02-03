@@ -1,5 +1,5 @@
 ---
-allowed-tools: Bash, Read, Write, Edit, Glob, Grep, Task, AskUserQuestion
+allowed-tools: Bash, Read, Write, Edit, Glob, Grep, Task, TaskCreate, TaskUpdate, TaskList, AskUserQuestion
 ---
 
 # Kickstart
@@ -71,9 +71,47 @@ Store the selected scope. The scope changes what each step captures and which st
 | Decompose | Decompose into features → then tasks per feature | Decompose into tasks | Decompose into tasks |
 | Sync | Run | Run | Run |
 
+## Task Agent Strategy
+
+**CRITICAL:** Use the Task tool to spawn sub-agents for each major step. This provides:
+- Better context management (each agent has its own context)
+- Parallel execution where possible
+- Resilience to context compaction
+- Progress tracking via TaskCreate/TaskUpdate
+
+### Execution Pattern
+
+1. **Create tasks first** using TaskCreate for all steps
+2. **Run independent tasks in parallel** using multiple Task tool calls in one message
+3. **Run dependent tasks sequentially** waiting for blockers to complete
+4. **Update task status** as each completes
+
+### Parallelization Map
+
+```
+Independent (can run in parallel):
+- Init, Principles, Context (all independent)
+
+Sequential chains:
+- PRD → Gate:PRD → Spec → Gate:Spec → Plan → Gate:Plan → Decompose → Gate:Epic → Sync
+
+Within Decompose (parallel by type):
+- DB tasks, API tasks, UI tasks, Test tasks (if no dependencies)
+```
+
+### Task Agent Usage
+
+For each step, spawn a Task agent:
+```
+Task tool with subagent_type="general-purpose"
+prompt: "Execute Step X: [description]. Write output to [path]. Return summary when done."
+```
+
+For parallel steps, include multiple Task calls in a single message.
+
 ## Instructions
 
-Execute the following steps sequentially. Each step that produces an artifact should check if the artifact already exists and skip if so (inform the user).
+Execute the following steps. Use TaskCreate to create tasks, then spawn Task agents to execute them. Check if artifacts exist and skip completed steps.
 
 ### Step 0: Scope Selection
 

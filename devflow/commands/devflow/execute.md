@@ -1,5 +1,5 @@
 ---
-allowed-tools: Bash, Read, Write, Edit, Glob, Grep, Task, Agent, AskUserQuestion
+allowed-tools: Bash, Read, Write, Edit, Glob, Grep, Task, TaskCreate, TaskUpdate, TaskList, TaskGet, Agent, AskUserQuestion
 ---
 
 # Execute
@@ -64,9 +64,54 @@ Where `<name>` matches the name used in `/devflow:kickstart <name>`.
 | Review | PR checklist per epic | PR checklist | PR checklist + API review |
 | Ship | Full deploy (CI/CD + Docker + env + monitoring) | Feature deploy (branch merge) | Publish (package build + publish + docs) |
 
+## Task Agent Strategy
+
+**CRITICAL:** Use the Task tool to spawn sub-agents for maximum parallelization. This provides:
+- Parallel task execution (multiple agents working simultaneously)
+- Better context management (each agent has its own context)
+- Resilience to context compaction
+- Progress tracking via TaskCreate/TaskUpdate
+
+### Execution Pattern
+
+1. **Create tasks first** using TaskCreate for all pending work items
+2. **Analyze dependencies** from epic files to determine parallel vs sequential
+3. **Launch parallel agents** for independent tasks (single message, multiple Task calls)
+4. **Wait and launch next batch** when dependencies complete
+5. **Update task status** as each completes
+
+### Parallelization Map (Build Phase)
+
+```
+Parallel by layer (no file conflicts):
+- db-task-worker: schema, migrations, seeds
+- api-task-worker: endpoints, services (after DB)
+- ui-task-worker: components, pages (after API contracts)
+- ai-task-worker: prompts, evals (independent)
+- test-runner: tests (after implementations)
+
+Within each layer, parallelize tasks that don't touch same files.
+```
+
+### Task Agent Types
+
+Use appropriate subagent_type for each task:
+- `general-purpose` — complex multi-step tasks
+- `Bash` — simple command execution
+- `Explore` — codebase exploration
+
+### Example: Parallel Task Launch
+
+```
+# Launch 3 independent tasks in ONE message:
+Task(subagent_type="general-purpose", prompt="Implement DB schema for users...")
+Task(subagent_type="general-purpose", prompt="Implement DB schema for sessions...")
+Task(subagent_type="general-purpose", prompt="Set up CI pipeline...")
+```
+
 ## Instructions
 
-Execute the following steps sequentially. Each step asks the user before proceeding. The user can skip any step.
+Execute the following steps. Use TaskCreate to track work, spawn Task agents for parallel execution where possible. Ask before each major phase.
 
 ### Step 1: Pre-flight Summary
 
