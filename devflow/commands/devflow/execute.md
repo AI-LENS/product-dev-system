@@ -58,11 +58,29 @@ Where `<name>` matches the name used in `/devflow:kickstart <name>`.
 | Step | Product | Feature | Library |
 |------|---------|---------|---------|
 | Bootstrap | Full scaffold (backend + frontend + DB + auth + AI + deploy) | Skip (project exists) | Skip (project exists) |
+| **Local Deploy** | Start local servers, verify setup | Start local, verify feature | Run tests locally |
 | Build | All workers (db, api, ui, ai) | Affected workers only | api-task-worker + test-runner |
+| **Verify** | Check each feature locally before next | Check feature works | Run examples |
 | Test | Full suite (unit + integration + E2E + AI eval) | Affected tests | Unit + integration + property-based |
 | Quality | Lint + security + perf budgets | Lint + security | Lint + security + type checking |
+| **Docs** | Mintlify docs (beginner-friendly) | Update affected docs | API reference + examples |
 | Review | PR checklist per epic | PR checklist | PR checklist + API review |
 | Ship | Full deploy (CI/CD + Docker + env + monitoring) | Feature deploy (branch merge) | Publish (package build + publish + docs) |
+
+## Elite Developer Workflow
+
+**Build → Deploy Locally → Verify → Repeat**
+
+Like an elite developer, we verify each feature before moving on:
+
+1. Build a feature/task
+2. Deploy locally (hot reload)
+3. Manually verify it works
+4. Run tests for that feature
+5. Ask user: "Feature X looks good? Continue to next?"
+6. Repeat for next feature
+
+This catches issues early and gives the user visibility into progress.
 
 ## Task Agent Strategy
 
@@ -129,12 +147,15 @@ Artifacts found:
   ✓ Tasks: <N> task files
 
 Steps:
-  1. Bootstrap    <run|skip based on scope>
-  2. Build        <worker list based on scope>
-  3. Test         <test types based on scope>
-  4. Quality      <checks based on scope>
-  5. Review       <review type based on scope>
-  6. Ship         <deploy type based on scope>
+  1. Bootstrap     <run|skip based on scope>
+  2. Local Deploy  <start servers for verification>
+  3. Build         <worker list based on scope>
+     → Verify each feature locally
+  4. Test          <test types based on scope>
+  5. Quality       <checks based on scope>
+  6. Docs          <Mintlify documentation>
+  7. Review        <review type based on scope>
+  8. Ship          <local ready, prod plan>
 ```
 
 Ask: "Proceed with full execution, or select specific steps?"
@@ -169,6 +190,34 @@ Run `/devflow:gate bootstrap <name>`.
 - **CONCERN:** Present concerns to the user. They choose: proceed or fix.
 - **PASS:** Continue.
 
+### Step 2b: Local Deploy (after bootstrap)
+
+**Start local development environment** so user can verify as we build:
+
+```bash
+# Backend (FastAPI)
+cd backend && uvicorn main:app --reload --port 8000
+
+# Frontend (Angular/React)
+cd frontend && npm run dev
+
+# Database
+docker-compose up -d postgres
+```
+
+Print:
+```
+🚀 Local Environment Running
+
+Backend:  http://localhost:8000
+Frontend: http://localhost:3000 (or 4200 for Angular)
+API Docs: http://localhost:8000/docs
+
+Tip: Keep these running. We'll verify features as we build.
+```
+
+Ask: "Local servers running? Ready to build?"
+
 ### Step 3: Build
 
 Ask: "Launch parallel agents to build?"
@@ -199,6 +248,39 @@ Ask: "Launch parallel agents to build?"
   5. If any tasks remain open: `/pm:blocked` to identify issues
 
 - **If skip:** Continue. User can run `/pm:epic-start <name>` later.
+
+#### Step 3b: Feature Verification Loop
+
+**After each logical feature/component is complete**, pause for user verification:
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔍 Feature Checkpoint: <feature_name>
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Tasks completed:
+  ✓ <task 1>
+  ✓ <task 2>
+  ✓ <task 3>
+
+How to verify:
+  1. Open http://localhost:3000/<route>
+  2. Try: <specific action>
+  3. Expected: <expected result>
+
+Tests: <X passing, Y total>
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+Ask: "Does this feature work as expected?"
+- **Yes:** Continue to next feature
+- **No:** Ask what's wrong, fix it, re-verify
+- **Skip verification:** Continue without checking (not recommended)
+
+This ensures:
+- User sees progress incrementally
+- Issues caught early before they compound
+- User confidence in what's being built
 
 #### Step 3a: Gate — Build (aggregate)
 
@@ -267,7 +349,79 @@ Run `/devflow:gate quality <name>`.
 - **CONCERN:** Present to user.
 - **PASS:** Continue.
 
-### Step 6: Review
+### Step 6: Documentation (Mintlify)
+
+**Generate beginner-friendly documentation** using Mintlify.
+
+Ask: "Generate documentation?"
+
+- **If yes:**
+
+  1. **Initialize Mintlify** (if not exists):
+     ```bash
+     npx mintlify init
+     ```
+
+  2. **Generate docs structure** based on scope:
+
+     **Scope: product**
+     ```
+     docs/
+     ├── mint.json              # Mintlify config
+     ├── introduction.mdx       # What is this product?
+     ├── quickstart.mdx         # Get running in 5 minutes
+     ├── installation.mdx       # Step-by-step setup
+     ├── concepts/
+     │   ├── overview.mdx       # How it works (with diagrams)
+     │   └── architecture.mdx   # System architecture
+     ├── guides/
+     │   ├── getting-started.mdx
+     │   └── <feature>.mdx      # One guide per feature
+     ├── api-reference/
+     │   └── endpoints.mdx      # Auto-generated from OpenAPI
+     └── examples/
+         └── <use-case>.mdx     # Real-world examples
+     ```
+
+     **Scope: feature**
+     - Update existing docs with new feature guide
+     - Add API endpoints if new
+     - Update quickstart if workflow changed
+
+     **Scope: library**
+     ```
+     docs/
+     ├── mint.json
+     ├── introduction.mdx       # What problem does this solve?
+     ├── installation.mdx       # pip install, requirements
+     ├── quickstart.mdx         # Hello world example
+     ├── api-reference/
+     │   └── <module>.mdx       # Every public function
+     ├── guides/
+     │   └── <pattern>.mdx      # Common usage patterns
+     └── examples/
+         └── <example>.mdx      # Copy-paste examples
+     ```
+
+  3. **Writing style for beginners**:
+     - Assume reader knows basic programming but not this codebase
+     - Start every page with "What you'll learn"
+     - Include copy-paste code examples
+     - Add "Common mistakes" sections
+     - Use diagrams for complex flows
+     - Link related concepts
+
+  4. **Local preview**:
+     ```bash
+     npx mintlify dev
+     ```
+     Print: `📚 Docs preview: http://localhost:3333`
+
+  5. Ask: "Docs look good?"
+
+- **If skip:** Continue. Docs can be added later.
+
+### Step 7: Review
 
 Ask: "Run review checklist?"
 
@@ -298,7 +452,7 @@ Ask: "Run review checklist?"
 
 - **If skip:** Continue.
 
-#### Step 6a: Gate — Review
+#### Step 7a: Gate — Review
 
 Run `/devflow:gate review <name>`.
 
@@ -306,7 +460,7 @@ Run `/devflow:gate review <name>`.
 - **CONCERN:** Present to user.
 - **PASS:** Continue.
 
-### Step 7: Ship
+### Step 8: Ship
 
 Ask: "Ready to ship?"
 
@@ -339,7 +493,7 @@ Ask: "Ready to ship?"
 
 - **If skip:** Continue.
 
-### Step 8: Summary
+### Step 9: Summary
 
 Print final summary including gate results and traceability:
 
@@ -349,12 +503,14 @@ Execution Phase Complete
   Name:  <name>
 
 Results:
-  Bootstrap:  <completed|skipped>
-  Build:      <X/Y tasks completed>
-  Test:       <passed|X failures|skipped>
-  Quality:    <clean|X issues|skipped>
-  Review:     <approved|X items open|skipped>
-  Ship:       <deployed|ready to deploy|skipped>
+  Bootstrap:    <completed|skipped>
+  Local Deploy: <running at localhost:8000/3000|skipped>
+  Build:        <X/Y tasks completed, Y features verified>
+  Test:         <passed|X failures|skipped>
+  Quality:      <clean|X issues|skipped>
+  Docs:         <generated|updated|skipped>
+  Review:       <approved|X items open|skipped>
+  Ship:         <local ready, prod plan generated|skipped>
 
 Gate Results:
   - gate:bootstrap — [PASS|CONCERN|BLOCK|skipped]

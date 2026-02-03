@@ -93,13 +93,18 @@ Or run all at once: `/devflow:kickstart <name>`
 | Step | Command | What happens |
 |------|---------|-------------|
 | Bootstrap | `/init:project` | Scaffold project |
+| Local Deploy | automatic | Start local servers |
 | Build | `/pm:epic-start <name>` | Parallel agents |
+| **Verify** | interactive | Check each feature locally |
 | Test | `/testing:run` | Run tests |
 | Quality | `/quality:security-check` | Security audit |
+| **Docs** | Mintlify | Beginner-friendly docs |
 | Review | `/review:pr-checklist` | PR review |
-| Ship | `/deploy:setup` | CI/CD |
+| Ship | `/deploy:setup` | Local + prod deployment |
 
 Or run all at once: `/devflow:execute <name>`
+
+**Elite workflow:** Build → Deploy locally → Verify feature → Repeat
 
 **Resumable:** If interrupted, run the same command again - it checks task status and continues.
 
