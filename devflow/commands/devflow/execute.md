@@ -388,134 +388,136 @@ Tip: Keep these running. We'll verify features as we build.
 
 Ask: "Local servers running? Ready to build?"
 
-### Step 3: Build
+### Step 3: Build (Phase-by-Phase)
 
-Ask: "Launch parallel agents to build?"
+**IMPORTANT:** Build happens PHASE BY PHASE, not layer by layer. Each phase is a complete feature (DB + API + UI) that can be tested end-to-end.
 
-- **If yes:**
-  1. Run `/pm:epic-start <name>` — launches parallel-worker which coordinates:
+Ask: "Ready to start Phase 1?"
 
-     **Scope: product**
-     - `db-task-worker` — models, migrations, seeds
-     - `api-task-worker` — endpoints, services, schemas
-     - `ui-task-worker` — components, pages, layouts
-     - `ai-task-worker` — prompts, providers, evaluation (if AI layer in plan)
+#### Phase Execution Loop
 
-     **Scope: feature**
-     - Read plan to determine affected layers
-     - Launch only the relevant workers (e.g., api + ui, or db + api)
-
-     **Scope: library**
-     - `api-task-worker` — core module implementations
-     - `test-runner` — test suite alongside implementation
-
-  2. **Per-task tests**: After each task completes, immediately run tests:
-     ```bash
-     pytest tests/ -k "test_<module>" --tb=short -q
-     ```
-     - If tests fail: fix immediately before moving on
-     - If tests pass: continue
-  3. **Per-task gate**: Run `/devflow:gate task <name>` for that task.
-     - If BLOCK: pause the work stream for that task, report to user.
-     - If CONCERN: log and continue.
-     - If PASS: continue to next task.
-  4. **Per-feature tests**: After each feature (group of tasks), run integration tests:
-     ```bash
-     pytest tests/ -k "<feature>" --tb=short
-     ```
-  5. **Periodic full suite**: Every 3-5 features, run full test suite to catch regressions
-  6. Monitor progress: `/pm:status` after agents complete
-  7. If any tasks remain open: `/pm:blocked` to identify issues
-
-- **If skip:** Continue. User can run `/pm:epic-start <name>` later.
-
-#### Step 3b: Test After Each Task
-
-**Immediately after each task completes**, run its tests:
-
-```bash
-# Run tests for the specific module/feature
-pytest tests/ -k "test_<module>" --tb=short -q
-```
+**For each phase (repeat until all phases complete):**
 
 ```
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🧪 Task Tests: <task_name>
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Running: pytest tests/ -k "test_users" --tb=short
-
-✓ test_create_user PASSED
-✓ test_get_user PASSED
-✓ test_update_user PASSED
-✓ test_delete_user PASSED
-
-Result: 4/4 passed (0.8s)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┌─────────────────────────────────────────────────────────────┐
+│  PHASE {N}: {Feature Name}                                  │
+│  Example: Phase 1: Authentication Feature                   │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  1. BUILD ALL LAYERS FOR THIS FEATURE:                      │
+│     ├─ DB: tables, migrations, seeds                        │
+│     ├─ API: endpoints, services, schemas                    │
+│     ├─ UI: pages, components, state                         │
+│     └─ Tests: unit + integration for this feature           │
+│                                                             │
+│  2. RUN FEATURE TESTS (mandatory):                          │
+│     pytest tests/ -k "auth" --tb=short                      │
+│     → Must pass before continuing                           │
+│                                                             │
+│  3. RUN E2E TEST FOR FEATURE:                               │
+│     → Login flow works end-to-end                           │
+│     → User can register, login, logout                      │
+│                                                             │
+│  4. DEPLOY LOCALLY & VERIFY:                                │
+│     → User manually tests the feature                       │
+│     → "Does auth work? Can you login?"                      │
+│                                                             │
+│  5. RUN FULL REGRESSION SUITE:                              │
+│     pytest tests/ --tb=short                                │
+│     → All previous phases still work                        │
+│                                                             │
+│  6. PHASE GATE (mandatory):                                 │
+│     ✓ All tasks complete                                    │
+│     ✓ Unit tests pass                                       │
+│     ✓ Integration tests pass                                │
+│     ✓ E2E tests pass                                        │
+│     ✓ Regression suite passes                               │
+│     ✓ User verified locally                                 │
+│                                                             │
+│  7. USER SIGN-OFF:                                          │
+│     "Phase 1 complete. Ready for Phase 2?"                  │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-- **All pass:** Continue to next task
-- **Failures:** Stop, fix, re-run tests, then continue
-
-#### Step 3c: Feature Verification Loop
-
-**After each logical feature/component is complete**, run feature tests and pause for user verification:
-
-```bash
-# Run integration tests for the feature
-pytest tests/ -k "<feature>" --tb=short
-```
+**Phase output example:**
 
 ```
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔍 Feature Checkpoint: <feature_name>
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🏗️  PHASE 1: Authentication Feature
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Tasks completed:
-  ✓ <task 1>
-  ✓ <task 2>
-  ✓ <task 3>
+Building full stack for Auth:
 
-Tests run:
+  DB Layer:
+    ✓ users table created
+    ✓ sessions table created
+    ✓ migrations applied
+
+  API Layer:
+    ✓ POST /auth/register
+    ✓ POST /auth/login
+    ✓ POST /auth/logout
+    ✓ GET /auth/me
+
+  UI Layer:
+    ✓ LoginPage component
+    ✓ RegisterPage component
+    ✓ AuthGuard service
+    ✓ Auth state management
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🧪 PHASE 1 TESTING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Unit Tests:
+  pytest tests/unit/test_auth*.py
+  ✓ 12/12 passed
+
+Integration Tests:
+  pytest tests/integration/test_auth*.py
+  ✓ 8/8 passed
+
+E2E Tests:
+  pytest tests/e2e/test_auth_flow.py
+  ✓ 3/3 passed
+
+Regression Suite:
+  pytest tests/ --tb=short
+  ✓ 23/23 passed (no regressions)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔍 LOCAL VERIFICATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Please verify manually:
+  1. Open http://localhost:3000/register
+  2. Create a new account
+  3. Login with those credentials
+  4. Verify you see the dashboard
+  5. Logout and verify redirect to login
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🚦 PHASE GATE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  ✓ All 5 tasks completed
   ✓ Unit tests: 12/12 passed
-  ✓ Integration tests: 5/5 passed
-  ✓ Total: 17/17 passed (2.3s)
+  ✓ Integration tests: 8/8 passed
+  ✓ E2E tests: 3/3 passed
+  ✓ Regression: 23/23 passed
+  ☐ User verification: PENDING
 
-How to verify manually:
-  1. Open http://localhost:3000/<route>
-  2. Try: <specific action>
-  3. Expected: <expected result>
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Does the Auth feature work correctly? [Yes/No]
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
-Ask: "Tests pass and feature works as expected?"
-- **Yes:** Continue to next feature
-- **No:** Ask what's wrong, fix it, re-run tests, re-verify
-- **Skip verification:** Continue without manual check (tests still required)
+**DO NOT proceed to next phase until:**
+- All tests pass (unit, integration, E2E, regression)
+- User has verified the feature locally
+- User explicitly says "Yes, proceed to Phase 2"
 
-This ensures:
-- Tests run continuously, not just at the end
-- Bugs caught immediately after they're introduced
-- User sees progress incrementally
-- Confidence in what's being built
-
-#### Step 3d: Periodic Full Suite
-
-**Every 3-5 features**, run the full test suite to catch regressions:
-
-```bash
-pytest tests/ --tb=short -q
-```
-
-```
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔄 Regression Check (after 5 features)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Running full test suite...
-
-✓ 47/47 tests passed (12.3s)
-✓ No regressions detected
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-```
+**If tests fail:** Stop. Fix. Re-run all phase tests. Do not continue.
 
 #### Step 3a: Gate — Build (aggregate)
 
