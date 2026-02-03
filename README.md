@@ -116,15 +116,19 @@ Or run all at once: `/devflow:execute <name>`
 After installation, your project gets:
 
 ```
-.claude/
-├── commands/     # Slash commands
-├── rules/        # Coding standards
-├── agents/       # AI agents
-├── scripts/      # Bash helpers
-├── templates/    # Doc templates
-├── prds/         # Your PRDs
-├── specs/        # Your specs
-└── epics/        # Your tasks
+.claude/              # System files
+├── commands/         # Slash commands
+├── rules/            # Coding standards
+├── agents/           # AI agents
+├── scripts/          # Bash helpers
+└── templates/        # Doc templates
+
+devflow/              # Your artifacts
+├── prds/             # Product requirements
+├── specs/            # Specifications
+├── epics/            # Tasks
+├── context/          # Codebase context
+└── adrs/             # Architecture decisions
 ```
 
 ## License

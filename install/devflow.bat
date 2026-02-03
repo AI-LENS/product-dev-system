@@ -80,11 +80,13 @@ mkdir .claude\scripts\pm 2>nul
 mkdir .claude\scripts\common 2>nul
 mkdir .claude\hooks 2>nul
 mkdir .claude\templates 2>nul
-mkdir .claude\context 2>nul
-mkdir .claude\prds 2>nul
-mkdir .claude\epics 2>nul
-mkdir .claude\specs 2>nul
-mkdir .claude\adrs 2>nul
+
+:: Create devflow structure (user artifacts)
+mkdir devflow\prds 2>nul
+mkdir devflow\specs 2>nul
+mkdir devflow\epics 2>nul
+mkdir devflow\context 2>nul
+mkdir devflow\adrs 2>nul
 
 echo   [OK] Directories created
 

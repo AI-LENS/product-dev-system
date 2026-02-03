@@ -16,14 +16,14 @@ Initialize Product-dev-system for the current project. Sets up GitHub labels and
 
 ### Step 1: Verify Directory Structure
 
-Create `.claude/` directories if missing:
+Create `devflow/` directories if missing:
 
 ```bash
-mkdir -p .claude/prds
-mkdir -p .claude/specs
-mkdir -p .claude/epics
-mkdir -p .claude/context
-mkdir -p .claude/adrs
+mkdir -p devflow/prds
+mkdir -p devflow/specs
+mkdir -p devflow/epics
+mkdir -p devflow/context
+mkdir -p devflow/adrs
 ```
 
 ### Step 2: Check Git Repository

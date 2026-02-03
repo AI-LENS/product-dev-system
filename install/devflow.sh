@@ -86,7 +86,7 @@ fi
 echo ""
 echo "📁 Setting up Product-dev-system directories..."
 
-# Create .claude structure
+# Create .claude structure (system files)
 mkdir -p .claude/commands/devflow
 mkdir -p .claude/commands/pm
 mkdir -p .claude/commands/context
@@ -106,11 +106,13 @@ mkdir -p .claude/scripts/pm
 mkdir -p .claude/scripts/common
 mkdir -p .claude/hooks
 mkdir -p .claude/templates
-mkdir -p .claude/context
-mkdir -p .claude/prds
-mkdir -p .claude/epics
-mkdir -p .claude/specs
-mkdir -p .claude/adrs
+
+# Create devflow structure (user artifacts)
+mkdir -p devflow/prds
+mkdir -p devflow/specs
+mkdir -p devflow/epics
+mkdir -p devflow/context
+mkdir -p devflow/adrs
 
 echo "  ✅ Directories created"
 
