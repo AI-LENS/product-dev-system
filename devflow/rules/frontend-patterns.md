@@ -1,6 +1,49 @@
 # Frontend Patterns
 
-Frontend patterns for Angular+DaisyUI+Tailwind (primary) and React+Tailwind (secondary).
+Frontend patterns for Angular 19+ (latest) + DaisyUI + Tailwind (primary) and React + Tailwind (secondary).
+
+## Angular 19+ Requirements
+
+**Always use the latest Angular features:**
+
+- **Standalone components** (default, no NgModules needed)
+- **Signals** for reactive state (not BehaviorSubject)
+- **New control flow** syntax: `@if`, `@for`, `@switch`, `@defer`
+- **Deferrable views** with `@defer` for lazy loading
+- **Built-in image optimization** with `NgOptimizedImage`
+- **Typed forms** with strict typing
+- **inject()** function instead of constructor injection
+
+```typescript
+// Angular 19+ component example
+@Component({
+  selector: 'app-user-card',
+  standalone: true,
+  imports: [CommonModule, NgOptimizedImage],
+  template: `
+    @if (user()) {
+      <div class="card bg-base-100 shadow-xl">
+        <figure>
+          <img ngSrc="{{ user().avatar }}" width="200" height="200" priority />
+        </figure>
+        <div class="card-body">
+          <h2 class="card-title">{{ user().name }}</h2>
+          @defer (on viewport) {
+            <app-user-details [userId]="user().id" />
+          } @placeholder {
+            <div class="skeleton h-20 w-full"></div>
+          }
+        </div>
+      </div>
+    }
+  `,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class UserCardComponent {
+  user = input.required<User>();  // Signal-based input
+  private userService = inject(UserService);  // inject() function
+}
+```
 
 ## Component Architecture
 

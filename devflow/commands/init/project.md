@@ -27,7 +27,7 @@ Ask the user for the following:
    - Example: `my-saas-app`
 
 2. **Frontend framework** (required, pick one)
-   - Option A: Angular + DaisyUI + Tailwind CSS
+   - Option A: Angular (latest v19+) + DaisyUI + Tailwind CSS
    - Option B: React + Tailwind CSS
 
 3. **Backend needed?** (default: yes)
@@ -299,14 +299,78 @@ async def test_ping(client):
 
 ### Step 4: Create Frontend Structure
 
-#### If Angular + DaisyUI + Tailwind:
+#### If Angular (latest) + DaisyUI + Tailwind:
+
+**Always use the latest Angular version (19+):**
+
 ```bash
-# Only create structure — user runs ng new separately if needed
-mkdir -p frontend/src/{app,assets,environments}
+# Install latest Angular CLI globally
+npm install -g @angular/cli@latest
+
+# Create new Angular app with latest features
+ng new frontend --style=scss --routing=true --ssr=false --skip-git
+
+cd frontend
+
+# Add Tailwind CSS
+npm install -D tailwindcss postcss autoprefixer
+npx tailwindcss init
+
+# Add DaisyUI
+npm install -D daisyui@latest
+
+# Add HTTP client and forms
+ng add @angular/common
 ```
 
-Create `frontend/package.json` with Angular dependencies, Tailwind CSS, and DaisyUI.
-Create `frontend/tailwind.config.js` with DaisyUI plugin.
+**Configure Tailwind** (`frontend/tailwind.config.js`):
+```javascript
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  content: ["./src/**/*.{html,ts}"],
+  theme: {
+    extend: {},
+  },
+  plugins: [require("daisyui")],
+  daisyui: {
+    themes: ["light", "dark", "corporate"],
+  },
+};
+```
+
+**Update styles** (`frontend/src/styles.scss`):
+```scss
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+```
+
+**Angular 19+ features to use:**
+- Standalone components (default)
+- Signals for reactive state
+- New control flow (@if, @for, @switch)
+- Deferrable views (@defer)
+- Built-in image optimization
+
+**Configure proxy** (`frontend/proxy.conf.json`):
+```json
+{
+  "/api": {
+    "target": "http://localhost:8000",
+    "secure": false,
+    "changeOrigin": true
+  }
+}
+```
+
+Update `frontend/angular.json` to use proxy:
+```json
+"serve": {
+  "options": {
+    "proxyConfig": "proxy.conf.json"
+  }
+}
+```
 
 #### If React + Tailwind:
 ```bash

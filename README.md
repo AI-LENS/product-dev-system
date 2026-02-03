@@ -66,10 +66,12 @@ C:\path\to\Product-dev-system\install\devflow.bat
 
 | Layer | Technology |
 |-------|-----------|
-| Frontend | Angular + DaisyUI + Tailwind (or React) |
+| Frontend | Angular 19+ (latest) + DaisyUI + Tailwind (or React) |
 | Backend | Python + FastAPI |
 | Database | PostgreSQL + SQLAlchemy + Alembic |
 | AI | Multi-provider (Anthropic/OpenAI) |
+
+**Angular 19+ features:** Standalone components, Signals, new control flow (@if, @for), deferrable views (@defer).
 
 ## Two Phases
 
