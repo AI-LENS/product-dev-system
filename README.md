@@ -106,7 +106,9 @@ Or run all at once: `/devflow:kickstart <name>`
 
 Or run all at once: `/devflow:execute <name>`
 
-**Elite workflow:** Build → Deploy locally → Verify feature → Repeat
+**Elite workflow:** Build → Test → Deploy locally → Verify → Repeat
+
+**Continuous testing:** Tests run after each task, each feature, and periodically (full suite every 3-5 features).
 
 **Resumable:** If interrupted, run the same command again - it checks task status and continues.
 

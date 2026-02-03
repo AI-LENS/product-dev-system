@@ -69,16 +69,40 @@ Where `<name>` matches the name used in `/devflow:kickstart <name>`.
 
 ## Elite Developer Workflow
 
-**Build → Deploy Locally → Verify → Repeat**
+**Build → Test → Deploy Locally → Verify → Repeat**
 
-Like an elite developer, we verify each feature before moving on:
+Like an elite developer, we test and verify each feature before moving on:
 
 1. Build a feature/task
-2. Deploy locally (hot reload)
-3. Manually verify it works
-4. Run tests for that feature
+2. **Run tests immediately** (unit + integration for that feature)
+3. Deploy locally (hot reload)
+4. Manually verify it works
 5. Ask user: "Feature X looks good? Continue to next?"
 6. Repeat for next feature
+
+### Continuous Testing Strategy
+
+**Tests run at multiple points:**
+
+| When | What Tests | Why |
+|------|-----------|-----|
+| After each task | Unit tests for changed files | Catch bugs immediately |
+| After each feature | Integration tests for feature | Verify feature works end-to-end |
+| After build phase | Full test suite | Catch cross-feature regressions |
+| Before review | Full suite + coverage | Ensure nothing missed |
+| Before ship | Full suite + E2E + perf | Production readiness |
+
+**Test commands used:**
+```bash
+# After task (fast, ~10s)
+pytest tests/ -k "test_<module>" --tb=short
+
+# After feature (~30s)
+pytest tests/ -k "<feature>" --tb=short
+
+# Full suite (~2-5min)
+pytest tests/ --cov=app --cov-report=term-missing
+```
 
 This catches issues early and gives the user visibility into progress.
 
@@ -239,19 +263,61 @@ Ask: "Launch parallel agents to build?"
      - `api-task-worker` — core module implementations
      - `test-runner` — test suite alongside implementation
 
-  2. **Per-task gate**: After each task completes, run `/devflow:gate task <name>` for that task.
+  2. **Per-task tests**: After each task completes, immediately run tests:
+     ```bash
+     pytest tests/ -k "test_<module>" --tb=short -q
+     ```
+     - If tests fail: fix immediately before moving on
+     - If tests pass: continue
+  3. **Per-task gate**: Run `/devflow:gate task <name>` for that task.
      - If BLOCK: pause the work stream for that task, report to user.
      - If CONCERN: log and continue.
      - If PASS: continue to next task.
-  3. Run task tests immediately after each task completes (incremental testing).
-  4. Monitor progress: `/pm:status` after agents complete
-  5. If any tasks remain open: `/pm:blocked` to identify issues
+  4. **Per-feature tests**: After each feature (group of tasks), run integration tests:
+     ```bash
+     pytest tests/ -k "<feature>" --tb=short
+     ```
+  5. **Periodic full suite**: Every 3-5 features, run full test suite to catch regressions
+  6. Monitor progress: `/pm:status` after agents complete
+  7. If any tasks remain open: `/pm:blocked` to identify issues
 
 - **If skip:** Continue. User can run `/pm:epic-start <name>` later.
 
-#### Step 3b: Feature Verification Loop
+#### Step 3b: Test After Each Task
 
-**After each logical feature/component is complete**, pause for user verification:
+**Immediately after each task completes**, run its tests:
+
+```bash
+# Run tests for the specific module/feature
+pytest tests/ -k "test_<module>" --tb=short -q
+```
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🧪 Task Tests: <task_name>
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Running: pytest tests/ -k "test_users" --tb=short
+
+✓ test_create_user PASSED
+✓ test_get_user PASSED
+✓ test_update_user PASSED
+✓ test_delete_user PASSED
+
+Result: 4/4 passed (0.8s)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+- **All pass:** Continue to next task
+- **Failures:** Stop, fix, re-run tests, then continue
+
+#### Step 3c: Feature Verification Loop
+
+**After each logical feature/component is complete**, run feature tests and pause for user verification:
+
+```bash
+# Run integration tests for the feature
+pytest tests/ -k "<feature>" --tb=short
+```
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -263,24 +329,47 @@ Tasks completed:
   ✓ <task 2>
   ✓ <task 3>
 
-How to verify:
+Tests run:
+  ✓ Unit tests: 12/12 passed
+  ✓ Integration tests: 5/5 passed
+  ✓ Total: 17/17 passed (2.3s)
+
+How to verify manually:
   1. Open http://localhost:3000/<route>
   2. Try: <specific action>
   3. Expected: <expected result>
-
-Tests: <X passing, Y total>
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
-Ask: "Does this feature work as expected?"
+Ask: "Tests pass and feature works as expected?"
 - **Yes:** Continue to next feature
-- **No:** Ask what's wrong, fix it, re-verify
-- **Skip verification:** Continue without checking (not recommended)
+- **No:** Ask what's wrong, fix it, re-run tests, re-verify
+- **Skip verification:** Continue without manual check (tests still required)
 
 This ensures:
+- Tests run continuously, not just at the end
+- Bugs caught immediately after they're introduced
 - User sees progress incrementally
-- Issues caught early before they compound
-- User confidence in what's being built
+- Confidence in what's being built
+
+#### Step 3d: Periodic Full Suite
+
+**Every 3-5 features**, run the full test suite to catch regressions:
+
+```bash
+pytest tests/ --tb=short -q
+```
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔄 Regression Check (after 5 features)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Running full test suite...
+
+✓ 47/47 tests passed (12.3s)
+✓ No regressions detected
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
 
 #### Step 3a: Gate — Build (aggregate)
 
