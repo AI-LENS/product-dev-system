@@ -479,24 +479,17 @@ Traceability:
 
 Then suggest next steps based on scope:
 
-**Scope: product**
+**All scopes:**
 ```
-Next steps:
-  /init:project                # Scaffold the project
-  /pm:epic-start <name>        # Launch parallel agents to build
-```
+Next step:
+  /devflow:execute <name>      # Run execution phase (build, test, deploy)
 
-**Scope: feature**
-```
-Next steps:
-  /pm:epic-start <name>        # Launch parallel agents to build
-```
-
-**Scope: library**
-```
-Next steps:
-  /pm:epic-start <name>        # Launch parallel agents to build
-  # Library will be built with: package structure, tests, CI/CD, publish config
+This will:
+  - Build phase-by-phase (feature-complete phases)
+  - Run comprehensive tests at each phase
+  - Deploy locally for verification
+  - Generate documentation
+  - Prepare for production
 ```
 
 ## Error Recovery
