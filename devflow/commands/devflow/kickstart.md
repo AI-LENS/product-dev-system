@@ -12,6 +12,22 @@ Run the entire Brainstorming Phase sequentially. Adapts its pipeline based on sc
 /devflow:kickstart <name>
 ```
 
+## Resume Behavior
+
+**This command is resumable.** If interrupted (context compaction, error, etc.), just run it again with the same `<name>`. It will:
+
+1. Detect existing artifacts and skip completed steps
+2. Read scope from existing PRD frontmatter (won't ask again)
+3. Continue from the first incomplete step
+
+**What gets checked:**
+- `devflow/prds/<name>.md` → PRD step
+- `devflow/specs/<name>.md` → Spec step
+- `devflow/specs/<name>-plan.md` → Plan step
+- `devflow/epics/<name>/epic.md` → Decompose step
+
+**To force redo a step:** Delete the artifact file and re-run kickstart.
+
 ## Required Rules
 
 - `devflow/rules/datetime.md`

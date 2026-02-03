@@ -14,6 +14,20 @@ Run the Execution Phase — agents consume brainstorming artifacts and build, te
 
 Where `<name>` matches the name used in `/devflow:kickstart <name>`.
 
+## Resume Behavior
+
+**This command is resumable.** If interrupted (context compaction, error, etc.), just run it again with the same `<name>`. It will:
+
+1. Check task status in GitHub issues or local epic files
+2. Skip completed tasks, resume in-progress tasks
+3. Continue from the first incomplete step
+
+**The command asks before each major step**, so you can also:
+- Skip steps you've already done manually
+- Jump to a specific phase
+
+**To check current status:** Run `/pm:status` to see what's complete vs pending.
+
 ## Required Rules
 
 - `devflow/rules/datetime.md`

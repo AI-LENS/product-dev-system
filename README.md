@@ -86,6 +86,8 @@ C:\path\to\Product-dev-system\install\devflow.bat
 
 Or run all at once: `/devflow:kickstart <name>`
 
+**Resumable:** If interrupted, run the same command again - it skips completed steps.
+
 ### Phase B: Execution
 
 | Step | Command | What happens |
@@ -98,6 +100,8 @@ Or run all at once: `/devflow:kickstart <name>`
 | Ship | `/deploy:setup` | CI/CD |
 
 Or run all at once: `/devflow:execute <name>`
+
+**Resumable:** If interrupted, run the same command again - it checks task status and continues.
 
 ## Agents
 
