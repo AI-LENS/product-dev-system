@@ -46,22 +46,24 @@ git rev-parse --git-dir 2>/dev/null
 ```bash
 git init
 ```
-Then ask:
-1. Repository name (suggest current folder name)
-2. Organization (use AskUserQuestion):
-   > Where should the repository be created?
-   > 1. **Personal account** - Create under your GitHub username
-   > 2. **Organization** - I'll specify the organization name
+Then ask for repository name (suggest current folder name).
 
-If personal:
+Next, fetch the user's GitHub username and organizations:
 ```bash
-gh repo create <name> --private --source=. --push
+gh api user --jq '.login'
+gh api user/orgs --jq '.[].login'
 ```
 
-If organization, ask for org name, then:
-```bash
-gh repo create <org>/<name> --private --source=. --push
-```
+Use AskUserQuestion to present options dynamically:
+> Where should the repository be created?
+> 1. **<username>** (personal account)
+> 2. **<org1>**
+> 3. **<org2>**
+> ... (list all orgs)
+
+Based on selection:
+- If personal account: `gh repo create <name> --private --source=. --push`
+- If organization: `gh repo create <org>/<name> --private --source=. --push`
 
 **Option 2: Initialize git only**
 ```bash
@@ -89,19 +91,17 @@ git remote get-url origin 2>/dev/null
 > 3. **Skip** - Continue without GitHub integration
 
 **Option 1: Create new GitHub repo**
-Ask for:
-1. Repository name (suggest current folder name)
-2. Organization (personal or org name)
+Ask for repository name (suggest current folder name).
 
-If personal:
+Fetch username and orgs:
 ```bash
-gh repo create <name> --private --source=. --push
+gh api user --jq '.login'
+gh api user/orgs --jq '.[].login'
 ```
 
-If organization:
-```bash
-gh repo create <org>/<name> --private --source=. --push
-```
+Present options: personal account + all orgs. Based on selection:
+- Personal: `gh repo create <name> --private --source=. --push`
+- Organization: `gh repo create <org>/<name> --private --source=. --push`
 
 **Option 2: Add existing repo**
 Ask for the URL, then:
