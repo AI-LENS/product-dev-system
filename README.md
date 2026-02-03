@@ -108,7 +108,7 @@ Or run all at once: `/devflow:execute <name>`
 
 **Elite workflow:** Build → Test → Deploy locally → Verify → Repeat
 
-**Phased development:** Large apps (15+ tasks) are broken into phases. Each phase must pass all tests before the next begins.
+**Phased development:** Large apps broken into feature phases (not layers). Each phase = complete feature (DB + API + UI) that can be tested end-to-end.
 
 **Continuous testing:** Tests run after each task, each feature, and at phase gates.
 

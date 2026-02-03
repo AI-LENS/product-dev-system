@@ -315,55 +315,66 @@ Run `/devflow:gate plan <name>`.
 Check if `devflow/epics/<name>/epic.md` exists.
 - **If missing:** Run `/pm:epic-decompose <name>` logic, adapted by scope:
 
-**For large applications (15+ tasks or scope=product)**, organize tasks into phases:
+**For large applications (15+ tasks or scope=product)**, organize by FEATURES (not layers):
 
 ```markdown
-## Development Phases
+## Development Phases (Feature-Based)
 
-### Phase 1: Foundation
+Each phase = complete feature with full stack (DB + API + UI).
+This enables true end-to-end testing per phase.
+
+### Phase 1: Auth Feature
 Priority: P1 (must complete first)
 Tasks: 001-005
-- Database schema & migrations
-- Core models & base classes
-- API scaffolding
-- Auth/security setup
-- Health checks & config
+Full stack:
+- DB: users, sessions tables + migrations
+- API: /auth/login, /auth/register, /auth/logout, /auth/me
+- UI: Login page, Register page, Auth guard, Auth state
+- Tests: Complete auth flow E2E
 
-### Phase 2: Core Features
+### Phase 2: Dashboard Feature
+Priority: P1
+Depends on: Phase 1 (needs auth)
+Tasks: 006-011
+Full stack:
+- DB: dashboard config, widgets
+- API: /dashboard, /widgets CRUD
+- UI: Dashboard page, Widget components, Layout
+- Tests: Authenticated user can use dashboard E2E
+
+### Phase 3: [Core Business Feature]
 Priority: P1
 Depends on: Phase 1
-Tasks: 006-013
-- Primary business logic
-- Core API endpoints
-- Essential services
+Tasks: 012-018
+Full stack:
+- DB: <domain tables>
+- API: <domain endpoints>
+- UI: <domain pages and components>
+- Tests: Core business flow E2E
 
-### Phase 3: Secondary Features
+### Phase 4: [Secondary Feature]
 Priority: P2
-Depends on: Phase 2
-Tasks: 014-019
-- Additional endpoints
-- Integrations
-- Background processing
+Depends on: Phase 2 or 3
+Tasks: 019-024
+Full stack for feature...
 
-### Phase 4: Frontend
-Priority: P2
-Depends on: Phase 2 (API contracts)
-Tasks: 020-026
-- Components & pages
-- State management
-- API integration
-
-### Phase 5: Polish
+### Phase 5: Settings & Polish
 Priority: P3
-Depends on: Phase 3, 4
-Tasks: 027-030
-- Error handling
-- Logging & monitoring
-- Performance tuning
-- Documentation
+Depends on: All above
+Tasks: 025-028
+- Settings feature (full stack)
+- Error handling improvements
+- Performance optimization
+- Final E2E regression
 ```
 
-Each task file should include `phase: <N>` in frontmatter.
+**Why feature-based phases:**
+- Each phase is independently deployable and testable
+- User sees complete working features, not half-done APIs
+- E2E tests verify real user flows
+- Easier to demo progress to stakeholders
+
+Each task file should include `phase: <N>` and `feature: <name>` in frontmatter.
 
 **Scope: product**
 - First decompose into features (one epic per major feature)

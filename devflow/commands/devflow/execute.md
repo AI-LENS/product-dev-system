@@ -83,46 +83,59 @@ Ask user: "This is a large application. Break into phases?"
 - **Yes:** Continue with phased approach
 - **No:** Build all at once (not recommended for large apps)
 
-### Phase Breakdown
+### Phase Breakdown (Feature-Based)
 
-Group tasks into logical phases based on dependencies and functionality:
+**Group by FEATURES, not layers.** Each phase = complete feature with full stack (DB + API + UI). This enables true end-to-end testing.
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📋 Development Phases for: <name>
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Phase 1: Foundation (5 tasks)
-  - Database schema & migrations
-  - Core models
-  - Base API structure
-  - Auth setup
-  - Health checks
+Phase 1: Setup & Auth Feature (5 tasks)
+  Full stack:
+  - DB: users table, sessions table
+  - API: /auth/login, /auth/register, /auth/logout
+  - UI: Login page, Register page, Auth state
+  - Tests: Auth E2E flow works completely
 
-Phase 2: Core Features (8 tasks)
-  - User management
-  - Primary business logic
-  - Core API endpoints
+Phase 2: Dashboard Feature (6 tasks)
+  Full stack:
+  - DB: dashboard_widgets table
+  - API: /dashboard, /widgets CRUD
+  - UI: Dashboard page, Widget components
+  - Tests: User can view/customize dashboard
 
-Phase 3: Secondary Features (6 tasks)
-  - Additional endpoints
-  - Integrations
-  - Background jobs
+Phase 3: User Management Feature (5 tasks)
+  Full stack:
+  - DB: roles, permissions tables
+  - API: /users CRUD, /roles
+  - UI: User list, User detail, Role assignment
+  - Tests: Admin can manage users completely
 
-Phase 4: UI/Frontend (7 tasks)
-  - Components
-  - Pages
-  - State management
+Phase 4: Reports Feature (6 tasks)
+  Full stack:
+  - DB: reports table, report_templates
+  - API: /reports CRUD, /reports/generate
+  - UI: Report builder, Report viewer
+  - Tests: User can create and view reports
 
-Phase 5: Polish & Production (4 tasks)
-  - Error handling
-  - Logging/monitoring
-  - Performance optimization
-  - Documentation
+Phase 5: Settings & Polish (4 tasks)
+  Full stack:
+  - DB: settings table
+  - API: /settings
+  - UI: Settings page, Profile page
+  - Tests: Full app regression + E2E
 
-Total: 30 tasks across 5 phases
+Total: 26 tasks across 5 feature phases
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
+
+**Why feature-based:**
+- Each phase is independently testable end-to-end
+- User can see and verify complete features
+- Aligns with user stories and acceptance criteria
+- No "API works but no UI to test it" situations
 
 ### Phase Execution Loop
 
