@@ -146,6 +146,22 @@ devflow/              # Your artifacts
 └── adrs/             # Architecture decisions
 ```
 
+## ADRs (Architecture Decision Records)
+
+ADRs capture why architectural decisions were made. They're used throughout the system:
+
+| Where | How ADRs are used |
+|-------|-------------------|
+| **Planning** | Check new decisions don't conflict with existing ADRs |
+| **Code Review** | Verify implementation follows ADRs |
+| **Gates** | ADR compliance check before passing |
+| **Documentation** | Auto-included in Mintlify docs |
+| **Onboarding** | New devs read ADRs to understand "why" |
+
+**Commands:**
+- `/arch:adr-new "decision"` — Create new ADR
+- `/arch:adr-list` — List all ADRs
+
 ## Recovering from Context Clear
 
 If Claude Code asks to clear/compact and you lose context:

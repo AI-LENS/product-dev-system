@@ -646,6 +646,36 @@ Ask: "Generate documentation?"
      - Use diagrams for complex flows
      - Link related concepts
 
+  4. **Include ADRs in documentation**:
+     Generate `docs/architecture/decisions.mdx`:
+     ```mdx
+     ---
+     title: Architecture Decisions
+     description: Key architectural decisions and their rationale
+     ---
+
+     # Architecture Decisions
+
+     This project follows these architectural decisions (ADRs):
+
+     | Decision | Status | Summary |
+     |----------|--------|---------|
+     | [ADR-001](/architecture/adr-001) | Accepted | PostgreSQL for data |
+     | [ADR-002](/architecture/adr-002) | Accepted | FastAPI backend |
+     | ...
+
+     ## Why ADRs Matter
+
+     ADRs help you understand:
+     - **Why** we chose certain technologies
+     - **What alternatives** were considered
+     - **Trade-offs** we accepted
+
+     New to the project? Read the ADRs to understand our architecture.
+     ```
+
+     Create individual ADR pages in `docs/architecture/adr-XXX.mdx` from `devflow/adrs/`.
+
   4. **Local preview**:
      ```bash
      npx mintlify dev
@@ -664,6 +694,7 @@ Ask: "Run review checklist?"
   1. `/review:pr-checklist` — Generate domain-aware PR review checklist
 
      **Scope: product**
+     - **ADR compliance check** — verify code follows architectural decisions
      - Architecture compliance check
      - Data model review
      - API contract review
@@ -672,18 +703,33 @@ Ask: "Run review checklist?"
      - Performance review
 
      **Scope: feature**
+     - **ADR compliance check** — verify no ADR violations
      - Feature-scoped review (affected layers only)
      - Backward compatibility check
      - Migration safety check
 
      **Scope: library**
+     - **ADR compliance check** — verify API design matches ADRs
      - API surface review (breaking changes, naming consistency)
      - Documentation completeness
      - Type coverage
      - Changelog entry
 
-  2. Present checklist to user for sign-off
-  3. If issues: fix and re-review
+  2. **ADR Compliance Report:**
+     ```
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     📋 ADR Compliance Check
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     ✓ ADR-001: PostgreSQL used (not MySQL/SQLite)
+     ✓ ADR-002: FastAPI patterns followed
+     ✓ ADR-003: Angular standalone components used
+     ✓ ADR-004: JWT auth implemented correctly
+     ⚠ ADR-005: Some files not in feature folders
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     ```
+
+  3. Present checklist to user for sign-off
+  4. If issues: fix and re-review
 
 - **If skip:** Continue.
 
