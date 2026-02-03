@@ -135,6 +135,26 @@ devflow/              # Your artifacts
 └── adrs/             # Architecture decisions
 ```
 
+## Recovering from Context Clear
+
+If Claude Code asks to clear/compact and you lose context:
+
+```bash
+# 1. Reload project context
+/context:prime
+
+# 2. Resume your work
+/devflow:kickstart <name>   # or
+/devflow:execute <name>
+```
+
+Both commands detect existing artifacts and continue from where you left off.
+
+**Tips to avoid context issues:**
+- Run `/context:update` at the end of each session
+- Use specific commands (`/pm:prd-new`) instead of long kickstart runs
+- Check `/pm:status` to see current progress before resuming
+
 ## License
 
 MIT — AI LENS

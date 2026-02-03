@@ -4,7 +4,7 @@ allowed-tools: Bash, Read, Write, LS
 
 # Update Context
 
-This command updates the project context documentation in `.claude/context/` to reflect the current state of the project. Run this at the end of each development session to keep context accurate.
+This command updates the project context documentation in `devflow/context/` to reflect the current state of the project. Run this at the end of each development session to keep context accurate.
 
 ## Required Rules
 
@@ -17,11 +17,11 @@ Before proceeding, complete these validation steps.
 Do not bother the user with preflight checks progress. Just do them and move on.
 
 ### 1. Context Validation
-- Run: `ls -la .claude/context/ 2>/dev/null`
+- Run: `ls -la devflow/context/ 2>/dev/null`
 - If directory doesn't exist or is empty:
   - Tell user: "No context to update. Please run /context:create first."
   - Exit gracefully
-- Count existing files: `ls -1 .claude/context/*.md 2>/dev/null | wc -l`
+- Count existing files: `ls -1 devflow/context/*.md 2>/dev/null | wc -l`
 - Report: "Found {count} context files to check for updates"
 
 ### 2. Change Detection
