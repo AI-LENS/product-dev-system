@@ -46,9 +46,21 @@ git rev-parse --git-dir 2>/dev/null
 ```bash
 git init
 ```
-Then ask for the repository name (suggest current folder name). Create the repo:
+Then ask:
+1. Repository name (suggest current folder name)
+2. Organization (use AskUserQuestion):
+   > Where should the repository be created?
+   > 1. **Personal account** - Create under your GitHub username
+   > 2. **Organization** - I'll specify the organization name
+
+If personal:
 ```bash
 gh repo create <name> --private --source=. --push
+```
+
+If organization, ask for org name, then:
+```bash
+gh repo create <org>/<name> --private --source=. --push
 ```
 
 **Option 2: Initialize git only**
@@ -77,9 +89,18 @@ git remote get-url origin 2>/dev/null
 > 3. **Skip** - Continue without GitHub integration
 
 **Option 1: Create new GitHub repo**
-Ask for repo name, then:
+Ask for:
+1. Repository name (suggest current folder name)
+2. Organization (personal or org name)
+
+If personal:
 ```bash
 gh repo create <name> --private --source=. --push
+```
+
+If organization:
+```bash
+gh repo create <org>/<name> --private --source=. --push
 ```
 
 **Option 2: Add existing repo**
