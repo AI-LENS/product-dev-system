@@ -294,6 +294,40 @@ Run `/devflow:gate plan <name>`.
 - **CONCERN:** Present concerns to the user. They choose: proceed, iterate, or deep-dive.
 - **PASS:** Continue.
 
+### Step 8b: Generate ADRs
+
+**Extract architectural decisions from the plan** and create ADRs for each significant decision.
+
+Identify decisions in these categories:
+1. **Technology choices** — database, framework, language versions
+2. **Architecture patterns** — microservices vs monolith, event-driven, etc.
+3. **Data model decisions** — schema design choices, relationships
+4. **Integration decisions** — third-party services, APIs
+5. **Security decisions** — auth approach, encryption, etc.
+
+For each decision found, run `/arch:adr-new "<decision>"`:
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 Architecture Decisions Recorded
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ADRs created from plan:
+  ✓ ADR-001: Use PostgreSQL as primary database
+  ✓ ADR-002: Use FastAPI for backend API
+  ✓ ADR-003: Use Angular 19 with standalone components
+  ✓ ADR-004: JWT-based authentication with refresh tokens
+  ✓ ADR-005: Feature-based folder structure
+
+Location: devflow/adrs/
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+**Minimum ADRs per scope:**
+- **Product:** 5+ ADRs (stack, architecture, auth, data model, deployment)
+- **Feature:** 1-3 ADRs (if new patterns or tech introduced)
+- **Library:** 2-3 ADRs (API design, packaging, versioning)
+
 ### Step 9: Design (conditional)
 
 **Scope: library** — Skip entirely. Print: `Library scope — no design phase.`

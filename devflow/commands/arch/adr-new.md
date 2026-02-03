@@ -15,7 +15,7 @@ allowed-tools:
 ```
 
 ## Description
-Records a new Architecture Decision Record (ADR) in `.claude/adrs/`. ADRs capture significant architectural decisions, technology choices, and pattern selections for the project.
+Records a new Architecture Decision Record (ADR) in `devflow/adrs/`. ADRs capture significant architectural decisions, technology choices, and pattern selections for the project.
 
 ## References
 - `devflow/rules/adr-patterns.md` — ADR format standards and lifecycle
@@ -45,7 +45,7 @@ mkdir -p .claude/adrs
 ```
 List existing ADRs and determine the next number:
 ```bash
-ls .claude/adrs/ADR-*.md 2>/dev/null | sort -V | tail -1
+ls devflow/adrs/ADR-*.md 2>/dev/null | sort -V | tail -1
 ```
 - If no ADRs exist, next number is `001`.
 - If ADRs exist, extract the highest number and increment by 1.
@@ -62,7 +62,7 @@ Convert the decision title to a URL-friendly slug:
 Example: "Use PostgreSQL for primary datastore" becomes `use-postgresql-for-primary-datastore`
 
 ### Step 5: Create ADR File
-Filename: `.claude/adrs/ADR-{number}-{slug}.md`
+Filename: `devflow/adrs/ADR-{number}-{slug}.md`
 
 Use the template from `devflow/templates/adr/adr-template.md` and populate it:
 
@@ -143,7 +143,7 @@ Fill in the sections based on their responses. If the user provides enough infor
 
 ### Step 7: Output
 ```
-✅ ADR created: .claude/adrs/ADR-{number}-{slug}.md
+✅ ADR created: devflow/adrs/ADR-{number}-{slug}.md
   - Status: proposed
   - Title: {Decision Title}
   - Number: ADR-{number}

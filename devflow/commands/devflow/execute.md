@@ -339,6 +339,27 @@ Run `/devflow:gate bootstrap <name>`.
 - **CONCERN:** Present concerns to the user. They choose: proceed or fix.
 - **PASS:** Continue.
 
+#### Step 2b: Update ADR Status
+
+After bootstrap, update relevant ADRs from "proposed" to "accepted":
+
+```bash
+# Find ADRs related to implemented decisions and update status
+```
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 ADR Status Updates
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Updated to "accepted":
+  ✓ ADR-001: Use PostgreSQL as primary database
+  ✓ ADR-002: Use FastAPI for backend API
+  ✓ ADR-004: JWT-based authentication
+
+Run /arch:adr-list to see all ADRs
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
 ### Step 2b: Local Deploy (after bootstrap)
 
 **Start local development environment** so user can verify as we build:

@@ -14,7 +14,7 @@ allowed-tools:
 ```
 
 ## Description
-Lists all Architecture Decision Records from the `.claude/adrs/` directory, showing ADR number, title, status, and creation date in a formatted table.
+Lists all Architecture Decision Records from the `devflow/adrs/` directory, showing ADR number, title, status, and creation date in a formatted table.
 
 ## Execution
 
@@ -29,7 +29,7 @@ No ADRs found. Create one with: /arch:adr-new "Your decision title"
 
 ### Step 2: List ADR Files
 ```bash
-ls .claude/adrs/ADR-*.md 2>/dev/null | sort -V
+ls devflow/adrs/ADR-*.md 2>/dev/null | sort -V
 ```
 If no files found:
 ```
