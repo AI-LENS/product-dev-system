@@ -1,17 +1,10 @@
 #!/bin/bash
 
 echo ""
-echo "██████╗ ███████╗██╗   ██╗███████╗██╗      ██████╗ ██╗    ██╗"
-echo "██╔══██╗██╔════╝██║   ██║██╔════╝██║     ██╔═══██╗██║    ██║"
-echo "██║  ██║█████╗  ██║   ██║█████╗  ██║     ██║   ██║██║ █╗ ██║"
-echo "██║  ██║██╔══╝  ╚██╗ ██╔╝██╔══╝  ██║     ██║   ██║██║███╗██║"
-echo "██████╔╝███████╗ ╚████╔╝ ██║     ███████╗╚██████╔╝╚███╔███╔╝"
-echo "╚═════╝ ╚══════╝  ╚═══╝  ╚═╝     ╚══════╝ ╚═════╝  ╚══╝╚══╝"
-echo ""
-echo "┌──────────────────────────────────┐"
-echo "│  DevFlow by AI LENS              │"
-echo "│  End-to-End Product Development  │"
-echo "└──────────────────────────────────┘"
+echo "┌─────────────────────────────────────┐"
+echo "│  Product-dev-system by AI LENS     │"
+echo "│  End-to-End Product Development    │"
+echo "└─────────────────────────────────────┘"
 echo ""
 
 set -e
@@ -91,9 +84,10 @@ else
 fi
 
 echo ""
-echo "📁 Setting up DevFlow directories..."
+echo "📁 Setting up Product-dev-system directories..."
 
-# Create .claude structure that maps to devflow
+# Create .claude structure
+mkdir -p .claude/commands/devflow
 mkdir -p .claude/commands/pm
 mkdir -p .claude/commands/context
 mkdir -p .claude/commands/design
@@ -111,6 +105,7 @@ mkdir -p .claude/agents
 mkdir -p .claude/scripts/pm
 mkdir -p .claude/scripts/common
 mkdir -p .claude/hooks
+mkdir -p .claude/templates
 mkdir -p .claude/context
 mkdir -p .claude/prds
 mkdir -p .claude/epics
@@ -119,30 +114,74 @@ mkdir -p .claude/adrs
 
 echo "  ✅ Directories created"
 
-# Copy DevFlow files to .claude
-echo ""
-echo "📝 Installing DevFlow components..."
+# Determine Product-dev-system source directory (where this script lives)
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+DEVFLOW_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+DEVFLOW_SRC="$DEVFLOW_ROOT/devflow"
 
-if [ -d "devflow" ]; then
-    # Copy commands
-    cp -r devflow/commands/* .claude/commands/ 2>/dev/null && echo "  ✅ Commands installed"
-    # Copy rules
-    cp -r devflow/rules/* .claude/rules/ 2>/dev/null && echo "  ✅ Rules installed"
-    # Copy agents
-    cp -r devflow/agents/* .claude/agents/ 2>/dev/null && echo "  ✅ Agents installed"
-    # Copy scripts
-    cp -r devflow/scripts/* .claude/scripts/ 2>/dev/null && echo "  ✅ Scripts installed"
+echo "📍 Product-dev-system source: $DEVFLOW_ROOT"
+echo "📍 Target project: $(pwd)"
+echo ""
+
+# Validate source exists
+if [ ! -d "$DEVFLOW_SRC" ]; then
+    echo "❌ Product-dev-system source not found at: $DEVFLOW_SRC"
+    echo "   Make sure you're running this from a valid Product-dev-system installation."
+    exit 1
+fi
+
+# Prevent installing into Product-dev-system repo itself
+if [ "$(pwd)" = "$DEVFLOW_ROOT" ]; then
+    echo "❌ Cannot install Product-dev-system into itself."
+    echo "   Run this script from your target project directory:"
+    echo "   cd /path/to/your-project && $0"
+    exit 1
+fi
+
+# Copy Product-dev-system files to .claude
+echo "📝 Installing Product-dev-system components..."
+
+# Copy commands
+if [ -d "$DEVFLOW_SRC/commands" ]; then
+    cp -r "$DEVFLOW_SRC/commands"/* .claude/commands/ 2>/dev/null && echo "  ✅ Commands installed"
+fi
+
+# Copy rules
+if [ -d "$DEVFLOW_SRC/rules" ]; then
+    cp -r "$DEVFLOW_SRC/rules"/* .claude/rules/ 2>/dev/null && echo "  ✅ Rules installed"
+fi
+
+# Copy agents
+if [ -d "$DEVFLOW_SRC/agents" ]; then
+    cp -r "$DEVFLOW_SRC/agents"/* .claude/agents/ 2>/dev/null && echo "  ✅ Agents installed"
+fi
+
+# Copy scripts
+if [ -d "$DEVFLOW_SRC/scripts" ]; then
+    cp -r "$DEVFLOW_SRC/scripts"/* .claude/scripts/ 2>/dev/null && echo "  ✅ Scripts installed"
     chmod +x .claude/scripts/pm/*.sh 2>/dev/null
     chmod +x .claude/scripts/common/*.sh 2>/dev/null
-    # Copy hooks
-    cp -r devflow/hooks/* .claude/hooks/ 2>/dev/null && echo "  ✅ Hooks installed"
+fi
+
+# Copy hooks
+if [ -d "$DEVFLOW_SRC/hooks" ]; then
+    cp -r "$DEVFLOW_SRC/hooks"/* .claude/hooks/ 2>/dev/null && echo "  ✅ Hooks installed"
     chmod +x .claude/hooks/*.sh 2>/dev/null
-else
-    echo "  ⚠️  devflow/ directory not found. Skipping file copy."
+fi
+
+# Copy templates
+if [ -d "$DEVFLOW_SRC/templates" ]; then
+    mkdir -p .claude/templates
+    cp -r "$DEVFLOW_SRC/templates"/* .claude/templates/ 2>/dev/null && echo "  ✅ Templates installed"
+fi
+
+# Copy config files
+if [ -f "$DEVFLOW_SRC/devflow.config" ]; then
+    cp "$DEVFLOW_SRC/devflow.config" .claude/ 2>/dev/null && echo "  ✅ Config installed"
 fi
 
 echo ""
-echo "✅ DevFlow Installation Complete!"
+echo "✅ Product-dev-system Installation Complete!"
 echo "================================="
 echo ""
 echo "🎯 Next Steps:"
