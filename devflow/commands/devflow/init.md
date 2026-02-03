@@ -1,5 +1,5 @@
 ---
-allowed-tools: Bash, Read, Write, Glob
+allowed-tools: Bash, Read, Write, Glob, AskUserQuestion
 ---
 
 # Init
@@ -14,29 +14,93 @@ Initialize Product-dev-system for the current project. Sets up GitHub labels and
 
 ## Instructions
 
-### Step 1: Verify GitHub CLI
+### Step 1: Verify Directory Structure
 
-Check GitHub CLI is installed and authenticated:
+Create `.claude/` directories if missing:
+
+```bash
+mkdir -p .claude/prds
+mkdir -p .claude/specs
+mkdir -p .claude/epics
+mkdir -p .claude/context
+mkdir -p .claude/adrs
+```
+
+### Step 2: Check Git Repository
+
+Check if this is a git repository:
+
+```bash
+git rev-parse --git-dir 2>/dev/null
+```
+
+**If NOT a git repository**, use AskUserQuestion to ask:
+
+> This directory is not a git repository. What would you like to do?
+>
+> 1. **Initialize git + create GitHub repo** - I'll set up git and create a new GitHub repository
+> 2. **Initialize git only** - Just run `git init`, I'll add remote later
+> 3. **Skip** - Continue without git/GitHub integration
+
+**Option 1: Initialize git + create GitHub repo**
+```bash
+git init
+```
+Then ask for the repository name (suggest current folder name). Create the repo:
+```bash
+gh repo create <name> --private --source=. --push
+```
+
+**Option 2: Initialize git only**
+```bash
+git init
+```
+Continue to Step 3 but skip label creation.
+
+**Option 3: Skip**
+Continue to success message, note that GitHub features are unavailable.
+
+### Step 3: Check GitHub Remote
+
+If git exists, check for remote:
+
+```bash
+git remote get-url origin 2>/dev/null
+```
+
+**If no remote**, use AskUserQuestion:
+
+> Git repository exists but no GitHub remote. What would you like to do?
+>
+> 1. **Create new GitHub repo** - Create a new repository on GitHub
+> 2. **Add existing repo** - I'll provide the repository URL
+> 3. **Skip** - Continue without GitHub integration
+
+**Option 1: Create new GitHub repo**
+Ask for repo name, then:
+```bash
+gh repo create <name> --private --source=. --push
+```
+
+**Option 2: Add existing repo**
+Ask for the URL, then:
+```bash
+git remote add origin <url>
+```
+
+### Step 4: Verify GitHub CLI
+
+If we have a remote, check GitHub CLI:
 
 ```bash
 gh auth status
 ```
 
-If not authenticated, prompt user to run `gh auth login`.
+If not authenticated, tell user to run `gh auth login` and retry.
 
-### Step 2: Detect Repository
+### Step 5: Create GitHub Labels
 
-Verify this is a git repository with a GitHub remote:
-
-```bash
-git remote get-url origin
-```
-
-Extract the `owner/repo` format. If no remote found, warn the user.
-
-### Step 3: Create GitHub Labels
-
-Create the required labels for issue tracking. Run these commands (ignore errors if labels already exist):
+If GitHub is configured, create labels:
 
 ```bash
 gh label create "epic" --description "Parent issue for a feature" --color "8B5CF6" --force 2>/dev/null || true
@@ -48,40 +112,33 @@ gh label create "blocked" --description "Blocked by dependency" --color "DC2626"
 gh label create "in-progress" --description "Currently being worked on" --color "8B5CF6" --force 2>/dev/null || true
 ```
 
-### Step 4: Verify Directory Structure
+### Step 6: Success Message
 
-Check that `.claude/` directories exist. If missing, create them:
+Print summary based on what was configured:
 
-```bash
-mkdir -p .claude/prds
-mkdir -p .claude/specs
-mkdir -p .claude/epics
-mkdir -p .claude/context
-mkdir -p .claude/adrs
-```
-
-### Step 5: Confirm Success
-
-Print summary:
-
+**With GitHub:**
 ```
 ✅ Product-dev-system initialized
 
 Repository: owner/repo
 Labels: epic, task, P1, P2, P3, blocked, in-progress
+Directories: .claude/prds, specs, epics, context, adrs
 
 Next steps:
-  /devflow:principles    - Define project principles
-  /context:create        - Analyze codebase
-  /pm:prd-new <name>     - Start a new PRD
-  /devflow:kickstart <name> - Run full brainstorming phase
+  /devflow:kickstart <name>  - Run full brainstorming phase
+  /pm:prd-new <name>         - Start a new PRD
 ```
 
-## Error Recovery
+**Without GitHub:**
+```
+✅ Product-dev-system initialized (local only)
 
-| Error | Action |
-|-------|--------|
-| `gh` not found | Tell user to install GitHub CLI: https://cli.github.com/ |
-| Not authenticated | Tell user to run `gh auth login` |
-| No git remote | Warn but continue - labels won't be created |
-| Label creation fails | Continue - labels may already exist |
+Directories: .claude/prds, specs, epics, context, adrs
+
+⚠️  GitHub not configured - issue sync disabled
+    Run /devflow:init again after setting up git remote
+
+Next steps:
+  /devflow:kickstart <name>  - Run full brainstorming phase
+  /pm:prd-new <name>         - Start a new PRD
+```
