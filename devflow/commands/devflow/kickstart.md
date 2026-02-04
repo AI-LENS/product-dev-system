@@ -232,8 +232,14 @@ Run `/devflow:gate prd <name>`.
 
 ### Step 5: Spec
 
+**FIRST: Load PRD artifact**
+Read `devflow/prds/<name>.md` — this is the input for spec creation.
+
 Check if `devflow/specs/<name>.md` exists.
-- **If missing:** Run `/pm:spec-create <name>` logic, adapted by scope:
+- **If missing:** Run `/pm:spec-create <name>` logic, adapted by scope.
+
+  **Input:** PRD (problem, users, features, constraints)
+  **Output:** Spec (user stories, acceptance criteria, FRs, entities)
 
 **Scope: product**
 Create a Product Spec. Structure:
@@ -286,6 +292,10 @@ Ask the user: "Would you like to clarify ambiguities in the spec? (recommended f
 
 ### Step 7: Analyze
 
+**Load both PRD and Spec for comparison:**
+- `devflow/prds/<name>.md` — Original requirements
+- `devflow/specs/<name>.md` — Formalized spec
+
 Run `/pm:spec-analyze <name>` logic:
 - Cross-check PRD ↔ Spec consistency
 - Identify gaps, contradictions, missing requirements
@@ -295,8 +305,17 @@ Run `/pm:spec-analyze <name>` logic:
 
 ### Step 8: Plan
 
+**FIRST: Load Spec and PRD artifacts**
+Read:
+- `devflow/specs/<name>.md` — User stories, FRs, entities (PRIMARY INPUT)
+- `devflow/prds/<name>.md` — Constraints, assumptions (for context)
+- `devflow/templates/principles/active-principles.md` — Principles to comply with
+
 Check if `devflow/specs/<name>-plan.md` exists.
-- **If missing:** Run `/pm:plan <name>` logic, adapted by scope:
+- **If missing:** Run `/pm:plan <name>` logic, adapted by scope.
+
+  **Input:** Spec (FRs, entities), PRD (constraints), Principles
+  **Output:** Plan (architecture, data model, API design, project structure)
 
 **Scope: product**
 Generate a Full Architecture Plan:
@@ -432,11 +451,19 @@ During execution, gates will verify:
 
 **Scope: library** — Skip entirely. Print: `Library scope — no design phase.`
 
+**Scope: product/feature:**
+
+**FIRST: Load artifacts for design context**
+Read:
+- `devflow/specs/<name>.md` — User stories (what users need to do)
+- `devflow/specs/<name>-plan.md` — Tech stack, project structure
+- `devflow/prds/<name>.md` — User personas, constraints
+
 **Scope: product** — Ask: "Ready to design the UI? (recommended)"
 
 **Scope: feature** — Ask: "Does this feature include a user interface?"
 
-- **If yes:** Run design sub-sequence:
+- **If yes:** Run design sub-sequence (using spec's user stories to inform UI):
   1. `/design:design-tokens` — Create/verify design token system
   2. `/design:design-shell` — Design app shell layout (product scope only, skip for feature if shell exists)
   3. Ask which sections need UI specs, then for each:
@@ -446,8 +473,18 @@ During execution, gates will verify:
 
 ### Step 10: Epic Decompose
 
+**FIRST: Load all upstream artifacts**
+Read:
+- `devflow/specs/<name>-plan.md` — Architecture, data model, API design (PRIMARY INPUT)
+- `devflow/specs/<name>.md` — User stories, FRs for traceability
+- `devflow/prds/<name>.md` — Original scope for context
+- `devflow/design/*.md` — UI specs (if created)
+
 Check if `devflow/epics/<name>/epic.md` exists.
-- **If missing:** Run `/pm:epic-decompose <name>` logic, adapted by scope:
+- **If missing:** Run `/pm:epic-decompose <name>` logic, adapted by scope.
+
+  **Input:** Plan (architecture sections), Spec (FRs), Design (UI specs)
+  **Output:** Epic with tasks, each task traces_to FR-xxx and plan section
 
 **For large applications (15+ tasks or scope=product)**, organize by FEATURES (not layers):
 

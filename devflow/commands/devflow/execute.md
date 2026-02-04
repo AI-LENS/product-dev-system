@@ -71,6 +71,12 @@ Where `<name>` matches the name used in `/devflow:kickstart <name>`.
 5. Check GitHub CLI (`gh`) is authenticated: `gh auth status`.
 6. **Load ADRs:** Read all ADR files from `devflow/adrs/` and extract accepted decisions.
 7. **Load User Stories:** Read spec and extract all US-xxx with acceptance criteria for test mapping.
+8. **Load Design Artifacts (if scope is product/feature with UI):**
+   - `devflow/design/tokens.md` — Design tokens (colors, typography, spacing)
+   - `devflow/design/shell.md` — App shell layout
+   - `devflow/design/sections/*.md` — Section-specific UI specs
+   - If design was created in kickstart but files missing: WARN user.
+9. **Load Context:** Read `devflow/context/*.md` for codebase context.
 
 ## Scope Behavior Matrix
 
@@ -233,12 +239,14 @@ Read all artifacts and present:
 Scope: <product|feature|library>
 
 Artifacts Loaded:
-  ✓ PRD:   devflow/prds/<name>.md
-  ✓ Spec:  devflow/specs/<name>.md ([N] user stories)
-  ✓ Plan:  devflow/specs/<name>-plan.md
-  ✓ Epic:  devflow/epics/<name>/epic.md
-  ✓ Tasks: [N] task files
-  ✓ ADRs:  [N] accepted decisions
+  ✓ PRD:     devflow/prds/<name>.md
+  ✓ Spec:    devflow/specs/<name>.md ([N] user stories)
+  ✓ Plan:    devflow/specs/<name>-plan.md
+  ✓ Epic:    devflow/epics/<name>/epic.md
+  ✓ Tasks:   [N] task files
+  ✓ ADRs:    [N] accepted decisions
+  ✓ Design:  [present|skipped] (tokens, shell, [N] sections)
+  ✓ Context: devflow/context/*.md
 
 User Stories to Test:
   - US-001: [title] ([N] acceptance criteria)
@@ -261,13 +269,28 @@ Ask: "Proceed with full execution?"
 
 ### Step 2: Bootstrap (product scope only)
 
-**Scope: product** — Run the full bootstrap sequence:
+**Scope: product** — Run the full bootstrap sequence.
 
-1. `/init:project` — Scaffold project
-2. `/init:database` — SQLAlchemy + Alembic setup
-3. `/init:auth` — JWT auth
-4. `/init:ai` (if needed)
-5. `/init:deploy` — CI/CD scaffold
+**FIRST: Load Required Artifacts**
+
+Before bootstrapping, read:
+1. `devflow/specs/<name>-plan.md` — Project Structure section, Tech Stack section
+2. `devflow/adrs/ADR-*.md` — All technology decisions (framework, DB, auth approach)
+3. `devflow/prds/<name>.md` — Constraints section (for any infrastructure requirements)
+
+**Then scaffold matching the plan exactly:**
+
+1. `/init:project` — Scaffold project (structure MUST match plan's Project Structure)
+2. `/init:database` — SQLAlchemy + Alembic setup (per plan's Tech Stack)
+3. `/init:auth` — JWT auth (per auth ADR)
+4. `/init:ai` (if plan includes AI layer)
+5. `/init:deploy` — CI/CD scaffold (per plan's Infrastructure section)
+
+**Bootstrap Checklist:**
+- [ ] Directory structure matches plan's Project Structure
+- [ ] Tech stack matches plan (FastAPI, PostgreSQL, etc.)
+- [ ] Auth approach matches ADR
+- [ ] Environment variables match plan's config requirements
 
 **MANDATORY GATE: Bootstrap**
 
@@ -286,19 +309,33 @@ All checks MUST pass before proceeding.
 
 #### Step 3.1: Phase Start
 
+**Load all artifacts needed for this phase:**
+
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 🏗️  PHASE {N}: {Feature Name}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-User Stories in this phase:
-  - US-00X: [title]
-  - US-00Y: [title]
+Artifacts for this phase:
+  PRD:     devflow/prds/<name>.md (problem context)
+  Spec:    devflow/specs/<name>.md (US-xxx for this phase)
+  Plan:    devflow/specs/<name>-plan.md (architecture)
+  Tasks:   devflow/epics/<name>/0XX.md - 0YY.md
+  ADRs:    devflow/adrs/ADR-*.md (decisions to follow)
+  Design:  devflow/design/*.md (UI specs, if applicable)
 
-Full Stack Components:
-  DB:  [tables/models to create]
-  API: [endpoints to create]
-  UI:  [pages/components to create]
+User Stories in this phase:
+  - US-00X: [title] ([N] acceptance criteria)
+  - US-00Y: [title] ([N] acceptance criteria)
+
+Full Stack Components (from Plan):
+  DB:  [tables/models from plan's data model]
+  API: [endpoints from plan's API design]
+  UI:  [pages/components from design specs]
+
+Functional Requirements:
+  - FR-001: [title] (traces to US-00X)
+  - FR-002: [title] (traces to US-00Y)
 
 Starting Phase {N}...
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -306,11 +343,26 @@ Starting Phase {N}...
 
 #### Step 3.2: Build Database Layer
 
-Create all DB components for this phase:
-- SQLAlchemy models
-- Alembic migrations
+**FIRST: Load Required Artifacts**
+
+Before writing any DB code, read:
+1. `devflow/specs/<name>-plan.md` — Data Model section (entities, relationships, indexes)
+2. `devflow/specs/<name>.md` — Key Entities table
+3. `devflow/adrs/ADR-*-database*.md` — Database-related ADRs
+4. `devflow/epics/<name>/*.md` — Task files for this phase (DB tasks)
+
+**Then create DB components matching the plan:**
+- SQLAlchemy models (matching plan's data model exactly)
+- Alembic migrations (tables, indexes as specified)
 - Apply migrations
 - Seed data (if needed)
+
+**DB Layer Checklist:**
+- [ ] All entities from plan's data model created
+- [ ] Relationships match plan (1:N, N:M, etc.)
+- [ ] Indexes created as specified in plan
+- [ ] Field types match spec's entity definitions
+- [ ] Follows ADR database decisions
 
 **MANDATORY: DB Layer Tests**
 ```bash
@@ -322,11 +374,27 @@ If tests fail: STOP. Fix. Re-run. DO NOT PROCEED.
 
 #### Step 3.3: Build API Layer
 
-Create all API components for this phase:
-- Pydantic schemas (request/response)
-- Service layer (business logic)
-- API endpoints
-- Authentication/authorization
+**FIRST: Load Required Artifacts**
+
+Before writing any API code, read:
+1. `devflow/specs/<name>-plan.md` — API Design section (endpoints, auth, versioning)
+2. `devflow/specs/<name>.md` — Functional Requirements (FR-xxx) for this phase
+3. `devflow/adrs/ADR-*-api*.md` or `ADR-*-auth*.md` — API/Auth ADRs
+4. `devflow/epics/<name>/*.md` — Task files for this phase (API tasks)
+
+**Then create API components matching the plan:**
+- Pydantic schemas (request/response matching plan's API design)
+- Service layer (business logic implementing FR-xxx requirements)
+- API endpoints (paths, methods, auth as specified in plan)
+- Authentication/authorization (following auth ADR)
+
+**API Layer Checklist:**
+- [ ] All endpoints from plan created
+- [ ] Request/response schemas match plan
+- [ ] Each endpoint traces to FR-xxx requirement
+- [ ] Auth requirements implemented per ADR
+- [ ] API versioning follows plan (e.g., /api/v1/)
+- [ ] Error responses match plan's error taxonomy
 
 **MANDATORY: API Layer Tests**
 ```bash
@@ -339,11 +407,25 @@ If tests fail: STOP. Fix. Re-run. DO NOT PROCEED.
 
 #### Step 3.4: Build UI Layer (if applicable)
 
-Create all UI components for this phase:
-- Angular/React components
-- Pages
+**FIRST: Load Design Artifacts**
+
+Before writing any UI code, read and apply:
+1. `devflow/design/tokens.md` — Use defined colors, typography, spacing
+2. `devflow/design/shell.md` — Follow app shell layout structure
+3. `devflow/design/sections/<feature>.md` — Follow section-specific UI specs
+
+**Then create UI components following the design specs:**
+- Angular/React components (matching design tokens)
+- Pages (following shell layout)
 - State management
 - API integration
+
+**Component Checklist:**
+- [ ] Uses design tokens (not hardcoded colors/fonts)
+- [ ] Follows shell layout structure
+- [ ] Matches section spec wireframes
+- [ ] Responsive breakpoints per design
+- [ ] Accessibility (ARIA labels, keyboard nav)
 
 **MANDATORY: UI Tests**
 ```bash
@@ -356,7 +438,19 @@ If tests fail: STOP. Fix. Re-run. DO NOT PROCEED.
 
 #### Step 3.5: User Story E2E Tests — MANDATORY
 
+**FIRST: Load Required Artifacts**
+
+Before writing any E2E tests, read:
+1. `devflow/specs/<name>.md` — User Stories section (US-xxx with Given/When/Then)
+2. `devflow/epics/<name>/epic.md` — Which US-xxx belong to this phase
+3. `devflow/prds/<name>.md` — Original user needs (for context)
+
 **For EACH user story in this phase, create E2E tests for ALL acceptance criteria.**
+
+**E2E Test Requirements:**
+- Each US-xxx must have at least one test per acceptance criterion
+- Tests must validate the Given/When/Then exactly as written in spec
+- Happy path AND error paths must be tested
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -416,7 +510,9 @@ Coverage: 87%
 
 #### Step 3.7: ADR Compliance Check — MANDATORY
 
-**Verify code follows all accepted ADRs.**
+**Load and verify against ALL ADRs:**
+
+Read all files in `devflow/adrs/ADR-*.md` and verify code follows each decision.
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
