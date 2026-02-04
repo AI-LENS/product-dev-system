@@ -436,53 +436,15 @@ ng test --code-coverage
 
 If tests fail: STOP. Fix. Re-run. DO NOT PROCEED.
 
-#### Step 3.5: Phase Test Suite — ALL TEST TYPES (MANDATORY)
+#### Step 3.5: E2E Tests — USER STORY VALIDATION (MANDATORY)
 
-**Run ALL test types for this phase. Every test must pass before proceeding.**
+**Unit and integration tests already passed in Steps 3.2-3.4 (fail-fast).**
+**Now run E2E tests to validate complete user flows.**
 
 **FIRST: Load Required Artifacts**
 1. `devflow/specs/<name>.md` — User Stories (US-xxx with Given/When/Then)
 2. `devflow/epics/<name>/epic.md` — Which US-xxx belong to this phase
 3. `devflow/prds/<name>.md` — Original user needs (for context)
-
----
-
-**STEP 3.5.1: UNIT TESTS**
-
-Run all unit tests for code written in this phase:
-
-```bash
-# Backend unit tests
-pytest tests/unit/ -v --tb=short -k "phase_{N}" --cov=app --cov-report=term
-
-# Frontend unit tests (if applicable)
-npm test -- --coverage --testPathPattern="phase-{N}"
-```
-
-**Unit Test Requirements:**
-- Every new function/method must have unit tests
-- Coverage >= 80% on new code
-- Test edge cases, error conditions, boundary values
-
----
-
-**STEP 3.5.2: INTEGRATION TESTS**
-
-Run integration tests for this phase's features:
-
-```bash
-pytest tests/integration/ -v --tb=short -k "phase_{N}"
-```
-
-**Integration Test Requirements:**
-- Every API endpoint must have integration tests
-- Test DB operations with real database
-- Test service layer with real dependencies
-- Test authentication/authorization flows
-
----
-
-**STEP 3.5.3: E2E TESTS**
 
 **For EACH user story in this phase, create E2E tests for ALL acceptance criteria.**
 
@@ -523,26 +485,27 @@ If any test fails: STOP. Fix. Re-run. DO NOT PROCEED.
 
 ---
 
-**PHASE TEST SUMMARY**
+**PHASE TEST SUMMARY (Fail-Fast Results)**
 
-After all test types pass, display summary:
+Display cumulative results from all layer steps:
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 🧪 PHASE {N} TEST SUMMARY
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-UNIT TESTS:
-  Backend:  {N}/{N} passed ✓
-  Frontend: {N}/{N} passed ✓
+UNIT + INTEGRATION (passed in Steps 3.2-3.4):
+  DB Layer (Step 3.2):
+    - Model tests: {N}/{N} passed ✓
+    - Migration tests: {N}/{N} passed ✓
+  API Layer (Step 3.3):
+    - Service tests: {N}/{N} passed ✓
+    - Endpoint tests: {N}/{N} passed ✓
+  UI Layer (Step 3.4):
+    - Component tests: {N}/{N} passed ✓
   Coverage: {X}%
 
-INTEGRATION TESTS:
-  API endpoints: {N}/{N} passed ✓
-  DB operations: {N}/{N} passed ✓
-  Auth flows:    {N}/{N} passed ✓
-
-E2E TESTS:
+E2E TESTS (passed in Step 3.5):
   US-001: {N}/{N} acceptance criteria ✓
   US-002: {N}/{N} acceptance criteria ✓
   Total:  {N}/{N} user stories verified ✓
