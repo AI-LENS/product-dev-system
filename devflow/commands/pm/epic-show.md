@@ -17,21 +17,21 @@ Before proceeding, complete these validation steps.
 Do not bother the user with preflight checks progress. Just do them and move on.
 
 ### 1. Verify Epic Exists
-- Check if `.claude/epics/$ARGUMENTS/epic.md` exists
-- If not found, list available epics from `.claude/epics/`
+- Check if `devflow/epics/$ARGUMENTS/epic.md` exists
+- If not found, list available epics from `devflow/epics/`
 - Tell user: "Epic not found: $ARGUMENTS. Available epics: {list}"
 
 ## Instructions
 
 ### 1. Read Epic Metadata
 
-Read `.claude/epics/$ARGUMENTS/epic.md`:
+Read `devflow/epics/$ARGUMENTS/epic.md`:
 - Parse frontmatter: name, status, created, updated, github, progress, prd, spec, plan
 - Read the body content for overview and technical approach
 
 ### 2. Read All Task Files
 
-For each task file in `.claude/epics/$ARGUMENTS/`:
+For each task file in `devflow/epics/$ARGUMENTS/`:
 - Parse frontmatter: name, status, depends_on, parallel, github
 - Categorize by status: open, in-progress, closed/completed
 - Build dependency graph

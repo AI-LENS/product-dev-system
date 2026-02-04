@@ -121,7 +121,7 @@ Superseded by [ADR-007](ADR-007-new-decision.md)
 ### Referencing from Specs or Code
 ```markdown
 <!-- In spec documents -->
-Architecture: See [ADR-003](../../.claude/adrs/ADR-003-use-postgresql.md)
+Architecture: See [ADR-003](../../devflow/adrs/ADR-003-use-postgresql.md)
 ```
 
 ```python
@@ -131,7 +131,7 @@ Architecture: See [ADR-003](../../.claude/adrs/ADR-003-use-postgresql.md)
 
 ## Storage Location
 
-All ADRs are stored in `.claude/adrs/` at the project root.
+All ADRs are stored in `devflow/adrs/` at the project root.
 
 ## Review Process
 

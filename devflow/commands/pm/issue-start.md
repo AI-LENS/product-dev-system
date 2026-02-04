@@ -24,7 +24,7 @@ Before proceeding, complete these validation steps.
 Do not bother the user with preflight checks progress. Just do them and move on.
 
 ### 1. Find Task File
-- Search for `$ARGUMENTS.md` across all epic directories: `.claude/epics/*/$ARGUMENTS.md`
+- Search for `$ARGUMENTS.md` across all epic directories: `devflow/epics/*/$ARGUMENTS.md`
 - If not found, tell user: "Task file not found for issue #$ARGUMENTS"
 - Stop execution if not found
 
@@ -51,7 +51,7 @@ fi
 
 Read the task's epic to find the epic branch:
 ```bash
-epic_name=$(find .claude/epics -name "$ARGUMENTS.md" -exec dirname {} \; | head -1 | xargs basename)
+epic_name=$(find devflow/epics -name "$ARGUMENTS.md" -exec dirname {} \; | head -1 | xargs basename)
 ```
 
 Check if an epic branch exists:
@@ -94,10 +94,10 @@ gh issue edit "$ARGUMENTS" --add-label "in-progress" --add-assignee @me
 
 Create progress directory and initial progress file:
 ```bash
-mkdir -p .claude/epics/$epic_name/updates/$ARGUMENTS
+mkdir -p devflow/epics/$epic_name/updates/$ARGUMENTS
 ```
 
-Create `.claude/epics/$epic_name/updates/$ARGUMENTS/progress.md`:
+Create `devflow/epics/$epic_name/updates/$ARGUMENTS/progress.md`:
 ```markdown
 ---
 issue: $ARGUMENTS
@@ -133,7 +133,7 @@ Dependencies:
   {dependency status}
 
 Next steps:
-  1. Read the task requirements in .claude/epics/{epic_name}/$ARGUMENTS.md
+  1. Read the task requirements in devflow/epics/{epic_name}/$ARGUMENTS.md
   2. Implement the changes
   3. Commit frequently with: "Issue #$ARGUMENTS: {description}"
   4. Sync progress: /pm:issue-sync $ARGUMENTS

@@ -40,7 +40,7 @@ Ask the user the following questions (wait for responses before proceeding):
 ### 2. Create Incident Directory
 
 ```bash
-mkdir -p .claude/incidents
+mkdir -p devflow/incidents
 ```
 
 ### 3. Generate Incident Report
@@ -55,7 +55,7 @@ Generate an incident ID from the date:
 date -u +"%Y%m%d"
 ```
 
-**Create `.claude/incidents/INC-{YYYYMMDD}-{short-slug}.md`:**
+**Create `devflow/incidents/INC-{YYYYMMDD}-{short-slug}.md`:**
 
 ```markdown
 ---
@@ -179,7 +179,7 @@ All times in UTC.
 ### 4. Post-Creation
 
 ```
-Incident report created: .claude/incidents/INC-{id}.md
+Incident report created: devflow/incidents/INC-{id}.md
 
 Next steps:
   1. Review and fill in any remaining details
@@ -191,6 +191,6 @@ Next steps:
 
 ## Error Recovery
 
-- If `.claude/incidents/` cannot be created, suggest an alternative path
+- If `devflow/incidents/` cannot be created, suggest an alternative path
 - If the user cannot answer all questions, fill in what is known and mark others as "TBD"
 - If this is an ongoing incident, mark status as "investigating" and suggest updating later

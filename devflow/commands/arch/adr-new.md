@@ -5,6 +5,7 @@ allowed-tools:
   - Bash
   - Glob
   - LS
+  - AskUserQuestion
 ---
 
 # Architecture Decision Record — New
@@ -16,6 +17,17 @@ allowed-tools:
 
 ## Description
 Records a new Architecture Decision Record (ADR) in `devflow/adrs/`. ADRs capture significant architectural decisions, technology choices, and pattern selections for the project.
+
+## When to Create ADRs
+
+ADRs are REQUIRED for:
+- Database choices (PostgreSQL, MySQL, MongoDB, etc.)
+- Framework choices (FastAPI, Django, React, Angular, etc.)
+- Architecture patterns (microservices, monolith, event-driven, etc.)
+- Authentication approaches (JWT, sessions, OAuth, etc.)
+- Significant library choices that affect architecture
+- Data model decisions (relationships, schema choices)
+- API design decisions (REST, GraphQL, versioning strategy)
 
 ## References
 - `devflow/rules/adr-patterns.md` — ADR format standards and lifecycle
@@ -41,7 +53,7 @@ Store the output as `{datetime}`.
 
 ### Step 3: Determine ADR Number
 ```bash
-mkdir -p .claude/adrs
+mkdir -p devflow/adrs
 ```
 List existing ADRs and determine the next number:
 ```bash
@@ -132,14 +144,55 @@ Proposed
 - {external resources, documentation links}
 ```
 
-### Step 6: Engage the User
-After creating the file with the template structure, ask the user to provide:
-1. The **context** behind the decision
-2. The **options** they considered (at least 2)
-3. The **chosen option** and reasoning
-4. Any **related ADRs** or specs
+### Step 6: Gather ADR Information — STRUCTURED QUESTIONING
 
-Fill in the sections based on their responses. If the user provides enough information upfront, populate the ADR directly without further prompting.
+Use AskUserQuestion to systematically gather all ADR information:
+
+**Question 1: Context**
+> What problem or requirement led to this decision?
+> Options:
+> - New project needs [technology]
+> - Existing system requires change
+> - Performance/scalability requirements
+> - Team expertise consideration
+> - Other (describe)
+
+**Question 2: Options Considered**
+> What alternatives did you consider?
+> List at least 2 options. For each option, we'll capture pros and cons.
+>
+> Option A: [name]
+> Option B: [name]
+> Option C: [name] (optional)
+
+For EACH option, ask:
+> For [Option Name], what are the:
+> - Pros (advantages)
+> - Cons (disadvantages)
+
+**Question 3: Decision Rationale**
+> Why was [chosen option] selected over the alternatives?
+> Options:
+> - Best fit for requirements
+> - Team familiarity
+> - Performance characteristics
+> - Cost considerations
+> - Community support
+> - Other (describe)
+
+**Question 4: Consequences**
+> What are the positive and negative consequences of this decision?
+> Positive: [list]
+> Negative/trade-offs: [list]
+
+**Question 5: Related Artifacts**
+> Does this ADR relate to:
+> - Other ADRs (supersedes, references)
+> - Specific PRD or Spec
+> - External documentation
+> - None of the above
+
+Fill in the ADR sections based on their responses. If the user provides enough information upfront, populate the ADR directly without further prompting.
 
 ### Step 7: Output
 ```

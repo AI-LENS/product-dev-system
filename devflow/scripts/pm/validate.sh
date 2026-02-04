@@ -14,10 +14,10 @@ warnings=0
 # Check directory structure
 echo "Directory Structure:"
 [ -d ".claude" ] && echo "  .claude directory exists" || { echo "  .claude directory missing"; ((errors++)); }
-[ -d ".claude/prds" ] && echo "  PRDs directory exists" || echo "  PRDs directory missing (run /pm:init)"
-[ -d ".claude/epics" ] && echo "  Epics directory exists" || echo "  Epics directory missing (run /pm:init)"
-[ -d ".claude/specs" ] && echo "  Specs directory exists" || echo "  Specs directory missing (run /pm:init)"
-[ -d ".claude/context" ] && echo "  Context directory exists" || echo "  Context directory missing (run /context:create)"
+[ -d "devflow/prds" ] && echo "  PRDs directory exists" || echo "  PRDs directory missing (run /pm:init)"
+[ -d "devflow/epics" ] && echo "  Epics directory exists" || echo "  Epics directory missing (run /pm:init)"
+[ -d "devflow/specs" ] && echo "  Specs directory exists" || echo "  Specs directory missing (run /pm:init)"
+[ -d "devflow/context" ] && echo "  Context directory exists" || echo "  Context directory missing (run /context:create)"
 echo ""
 
 # Check DevFlow structure
@@ -32,7 +32,7 @@ echo ""
 echo "Data Integrity:"
 
 # Check epics have epic.md files
-for epic_dir in .claude/epics/*/; do
+for epic_dir in devflow/epics/*/; do
   [ -d "$epic_dir" ] || continue
   if [ ! -f "$epic_dir/epic.md" ]; then
     echo "  Missing epic.md in $(basename "$epic_dir")"
@@ -41,18 +41,18 @@ for epic_dir in .claude/epics/*/; do
 done
 
 # Check specs have matching PRDs
-for spec_file in .claude/specs/*.md; do
+for spec_file in devflow/specs/*.md; do
   [ -f "$spec_file" ] || continue
   [[ "$spec_file" == *"-plan.md" ]] && continue
   spec_name=$(basename "$spec_file" .md)
-  if [ ! -f ".claude/prds/$spec_name.md" ]; then
+  if [ ! -f "devflow/prds/$spec_name.md" ]; then
     echo "  Spec '$spec_name' has no matching PRD"
     ((warnings++))
   fi
 done
 
 # Check for orphaned tasks
-orphaned=$(find .claude -name "[0-9]*.md" -not -path ".claude/epics/*/*" 2>/dev/null | wc -l | tr -d ' ')
+orphaned=$(find .claude -name "[0-9]*.md" -not -path "devflow/epics/*/*" 2>/dev/null | wc -l | tr -d ' ')
 [ "$orphaned" -gt 0 ] && echo "  Found $orphaned orphaned task files" && ((warnings++))
 
 echo ""
@@ -61,7 +61,7 @@ echo ""
 echo "Reference Check:"
 ref_issues=0
 
-for task_file in .claude/epics/*/[0-9]*.md; do
+for task_file in devflow/epics/*/[0-9]*.md; do
   [ -f "$task_file" ] || continue
 
   deps_line=$(grep "^depends_on:" "$task_file" | head -1)

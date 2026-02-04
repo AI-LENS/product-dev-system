@@ -25,7 +25,7 @@ Translates product specs and user stories into a concrete, implementable design 
 
 Before using this skill, ensure:
 
-- **Spec with user stories:** A product spec or PRD exists (in `devflow/specs/`, `.claude/specs/`, or `devflow/prds/`) containing user stories with Given/When/Then acceptance criteria
+- **Spec with user stories:** A product spec or PRD exists (in `devflow/specs/`, `devflow/specs/`, or `devflow/prds/`) containing user stories with Given/When/Then acceptance criteria
 - **Plan with stack choice:** A technical plan or architecture decision has been made specifying the frontend framework. Default: Angular + DaisyUI + Tailwind CSS
 - **Node.js project initialized:** `package.json` exists with the chosen framework and Tailwind CSS installed
 

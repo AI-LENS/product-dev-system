@@ -10,8 +10,8 @@ echo ""
 found=0
 
 # Check for in-progress tasks
-if [ -d ".claude/epics" ]; then
-  for epic_dir in .claude/epics/*/; do
+if [ -d "devflow/epics" ]; then
+  for epic_dir in devflow/epics/*/; do
     [ -d "$epic_dir" ] || continue
     epic_name=$(basename "$epic_dir")
 
@@ -48,7 +48,7 @@ fi
 # Show active epics
 echo "Active Epics:"
 active_epics=0
-for epic_dir in .claude/epics/*/; do
+for epic_dir in devflow/epics/*/; do
   [ -d "$epic_dir" ] || continue
   [ -f "$epic_dir/epic.md" ] || continue
 

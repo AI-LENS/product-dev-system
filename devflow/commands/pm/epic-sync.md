@@ -15,10 +15,10 @@ Push epic and tasks to GitHub as issues.
 
 ```bash
 # Verify epic exists
-test -f .claude/epics/$ARGUMENTS/epic.md || echo "Epic not found. Run: /pm:epic-decompose $ARGUMENTS"
+test -f devflow/epics/$ARGUMENTS/epic.md || echo "Epic not found. Run: /pm:epic-decompose $ARGUMENTS"
 
 # Count task files
-ls .claude/epics/$ARGUMENTS/*.md 2>/dev/null | grep -v epic.md | wc -l
+ls devflow/epics/$ARGUMENTS/*.md 2>/dev/null | grep -v epic.md | wc -l
 ```
 
 If no tasks found: "No tasks to sync. Run: /pm:epic-decompose $ARGUMENTS"
@@ -58,7 +58,7 @@ echo "Creating issues in repository: $REPO"
 Strip frontmatter and prepare GitHub issue body:
 ```bash
 # Extract content without frontmatter
-sed '1,/^---$/d; 1,/^---$/d' .claude/epics/$ARGUMENTS/epic.md > /tmp/epic-body-raw.md
+sed '1,/^---$/d; 1,/^---$/d' devflow/epics/$ARGUMENTS/epic.md > /tmp/epic-body-raw.md
 
 # Remove "## Tasks Created" section and replace with Stats
 awk '
@@ -130,10 +130,10 @@ fi
 ### For Small Batches (< 5 tasks): Sequential Creation
 
 ```bash
-task_count=$(ls .claude/epics/$ARGUMENTS/[0-9][0-9][0-9].md 2>/dev/null | wc -l)
+task_count=$(ls devflow/epics/$ARGUMENTS/[0-9][0-9][0-9].md 2>/dev/null | wc -l)
 
 if [ "$task_count" -lt 5 ]; then
-  for task_file in .claude/epics/$ARGUMENTS/[0-9][0-9][0-9].md; do
+  for task_file in devflow/epics/$ARGUMENTS/[0-9][0-9][0-9].md; do
     [ -f "$task_file" ] || continue
     task_name=$(grep '^name:' "$task_file" | sed 's/^name: *//')
     sed '1,/^---$/d; 1,/^---$/d' "$task_file" > /tmp/task-body.md
@@ -227,16 +227,16 @@ repo=$(gh repo view --json nameWithOwner -q .nameWithOwner)
 epic_url="https://github.com/$repo/issues/$epic_number"
 current_date=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
-sed -i.bak "/^github:/c\github: $epic_url" .claude/epics/$ARGUMENTS/epic.md
-sed -i.bak "/^updated:/c\updated: $current_date" .claude/epics/$ARGUMENTS/epic.md
-rm .claude/epics/$ARGUMENTS/epic.md.bak
+sed -i.bak "/^github:/c\github: $epic_url" devflow/epics/$ARGUMENTS/epic.md
+sed -i.bak "/^updated:/c\updated: $current_date" devflow/epics/$ARGUMENTS/epic.md
+rm devflow/epics/$ARGUMENTS/epic.md.bak
 ```
 
 Update Tasks Created section with real issue numbers.
 
 ### 6. Create Mapping File
 
-Create `.claude/epics/$ARGUMENTS/github-mapping.md` with epic and task issue mappings.
+Create `devflow/epics/$ARGUMENTS/github-mapping.md` with epic and task issue mappings.
 
 ### 7. Output
 

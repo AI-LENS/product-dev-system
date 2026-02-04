@@ -23,8 +23,8 @@ Before proceeding, complete these validation steps.
 Do not bother the user with preflight checks progress. Just do them and move on.
 
 ### 1. Verify PRD Exists
-- Check if `.claude/prds/$ARGUMENTS.md` exists
-- If not found, tell user: "PRD not found: $ARGUMENTS. Available PRDs:" then list contents of `.claude/prds/`
+- Check if `devflow/prds/$ARGUMENTS.md` exists
+- If not found, tell user: "PRD not found: $ARGUMENTS. Available PRDs:" then list contents of `devflow/prds/`
 - Stop execution if PRD does not exist
 
 ### 2. Validate Frontmatter
@@ -36,7 +36,7 @@ Do not bother the user with preflight checks progress. Just do them and move on.
 
 ### 1. Read Current PRD
 
-Read `.claude/prds/$ARGUMENTS.md`:
+Read `devflow/prds/$ARGUMENTS.md`:
 - Parse frontmatter (name, description, status, created, updated)
 - Read all sections
 - Display current PRD summary to user
@@ -72,14 +72,14 @@ Update PRD file:
 
 ### 4. Check Spec Impact
 
-If PRD has an associated spec (check `.claude/specs/$ARGUMENTS.md`):
+If PRD has an associated spec (check `devflow/specs/$ARGUMENTS.md`):
 - Notify user: "This PRD has a spec: $ARGUMENTS"
 - Ask: "Spec may need updating based on PRD changes. Review spec? (yes/no)"
 - If yes, suggest: "Review with: /pm:spec-clarify $ARGUMENTS"
 
 ### 5. Check Epic Impact
 
-If PRD has an associated epic (check `.claude/epics/$ARGUMENTS/epic.md`):
+If PRD has an associated epic (check `devflow/epics/$ARGUMENTS/epic.md`):
 - Notify user: "This PRD has an epic: $ARGUMENTS"
 - Ask: "Epic may need updating based on PRD changes. Review epic? (yes/no)"
 - If yes, suggest: "Re-create spec and plan: /pm:spec-create $ARGUMENTS"

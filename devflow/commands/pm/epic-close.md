@@ -23,12 +23,12 @@ Before proceeding, complete these validation steps.
 Do not bother the user with preflight checks progress. Just do them and move on.
 
 ### 1. Verify Epic Exists
-- Check if `.claude/epics/$ARGUMENTS/epic.md` exists
+- Check if `devflow/epics/$ARGUMENTS/epic.md` exists
 - If not found, tell user: "Epic not found: $ARGUMENTS"
 - Stop execution if epic does not exist
 
 ### 2. Check Task Completion
-- Read all task files in `.claude/epics/$ARGUMENTS/`
+- Read all task files in `devflow/epics/$ARGUMENTS/`
 - Count open vs closed tasks
 - If open tasks remain, warn user: "Warning: {count} tasks still open. Close epic anyway? (yes/no)"
 - Only proceed with explicit confirmation if tasks are open
@@ -40,7 +40,7 @@ Do not bother the user with preflight checks progress. Just do them and move on.
 
 ### 1. Read Epic State
 
-Read `.claude/epics/$ARGUMENTS/epic.md`:
+Read `devflow/epics/$ARGUMENTS/epic.md`:
 - Parse frontmatter for github URL, status, progress
 - Get issue number from github field
 
@@ -94,10 +94,10 @@ GitHub:
   Task issues closed: {count}
 
 Artifacts:
-  PRD: .claude/prds/$ARGUMENTS.md
-  Spec: .claude/specs/$ARGUMENTS.md
-  Plan: .claude/specs/$ARGUMENTS-plan.md
-  Epic: .claude/epics/$ARGUMENTS/epic.md
+  PRD: devflow/prds/$ARGUMENTS.md
+  Spec: devflow/specs/$ARGUMENTS.md
+  Plan: devflow/specs/$ARGUMENTS-plan.md
+  Epic: devflow/epics/$ARGUMENTS/epic.md
 ```
 
 ## Important Notes

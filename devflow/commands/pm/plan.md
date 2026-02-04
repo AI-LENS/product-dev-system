@@ -1,5 +1,5 @@
 ---
-allowed-tools: Bash, Read, Write, LS
+allowed-tools: Bash, Read, Write, LS, AskUserQuestion
 ---
 
 # Plan
@@ -22,18 +22,18 @@ Before proceeding, complete these validation steps.
 Do not bother the user with preflight checks progress. Just do them and move on.
 
 ### 1. Verify Spec Exists
-- Check if `.claude/specs/$ARGUMENTS.md` exists
+- Check if `devflow/specs/$ARGUMENTS.md` exists
 - If not found, tell user: "Spec not found: $ARGUMENTS. Create it first with: /pm:spec-create $ARGUMENTS"
 - Stop execution if spec does not exist
 
 ### 2. Check for Existing Plan
-- Check if `.claude/specs/$ARGUMENTS-plan.md` already exists
+- Check if `devflow/specs/$ARGUMENTS-plan.md` already exists
 - If it exists, ask user: "Plan '$ARGUMENTS' already exists. Do you want to overwrite it? (yes/no)"
 - Only proceed with explicit 'yes' confirmation
 
 ### 3. Load Related Artifacts
-- Read spec: `.claude/specs/$ARGUMENTS.md`
-- Read PRD (if exists): `.claude/prds/$ARGUMENTS.md`
+- Read spec: `devflow/specs/$ARGUMENTS.md`
+- Read PRD (if exists): `devflow/prds/$ARGUMENTS.md`
 - Read principles (if exists): `devflow/templates/principles/active-principles.md`
 - Read plan template: `devflow/templates/plan/plan-template.md`
 
@@ -50,6 +50,91 @@ From the spec, extract:
 - Key entities and relationships
 - User stories and acceptance criteria
 - Technology constraints
+
+### 1b. Architecture Decision Validation — PROBE QUESTIONING (MANDATORY)
+
+**CRITICAL:** Architecture decisions have long-lasting impact. Validate key choices with the user using AskUserQuestion.
+
+#### Phase 1: Stack Confirmation
+
+**Question 1: Backend Architecture**
+> Based on the spec requirements, I recommend:
+> - **Framework:** FastAPI (default)
+> - **Why:** [Reason based on spec - async needs, API-first, etc.]
+>
+> Confirm backend approach?
+> - FastAPI (Recommended - matches spec requirements)
+> - Django (Better for admin-heavy apps)
+> - Flask (Simpler, less structure)
+> - Other (specify)
+
+**Question 2: Database Strategy**
+> Data model analysis suggests:
+> - **Primary DB:** PostgreSQL
+> - **Relationships:** [Complexity level - simple/moderate/complex]
+> - **Expected volume:** [Estimate from spec]
+>
+> Confirm database approach?
+> - PostgreSQL (Recommended)
+> - PostgreSQL + Redis (if caching needed)
+> - MySQL (if required by existing infra)
+> - Other (specify)
+
+**Question 3: Frontend Approach** (if applicable)
+> UI requirements suggest:
+> - **Complexity:** [Simple forms / Complex interactions / Data-heavy dashboards]
+> - **Real-time needs:** [Yes/No]
+>
+> Confirm frontend approach?
+> - Angular + DaisyUI (Recommended for complex apps)
+> - React + Tailwind (Recommended for simpler apps)
+> - No frontend (API only)
+> - Other (specify)
+
+#### Phase 2: Architecture Pattern Validation
+
+**Question 4: Code Organization**
+> For a project of this complexity, I recommend:
+> - **Pattern:** [Repository pattern / Service layer / Simple CRUD]
+> - **Structure:** [Feature-based / Layer-based]
+>
+> Which structure do you prefer?
+> - Feature-based folders (group by feature: auth/, users/, posts/)
+> - Layer-based folders (group by layer: models/, services/, routes/)
+> - Hybrid (layers within features)
+
+**Question 5: Authentication Approach** (if auth required)
+> The spec requires authentication. Options:
+> - JWT with refresh tokens (Recommended for SPAs)
+> - Session-based auth (Traditional web apps)
+> - OAuth2 only (Third-party auth)
+> - API keys (For service-to-service)
+
+**Question 6: API Versioning Strategy**
+> How should we handle API versioning?
+> - URL path versioning (/api/v1/) (Recommended)
+> - Header versioning
+> - No versioning (single version)
+
+#### Phase 3: Risk & Scalability
+
+**Question 7: Performance Requirements**
+> Based on NFRs, key performance targets:
+> - Response time: [X]ms (from spec or default 200ms)
+> - Concurrent users: [X] (from spec)
+> - Data volume: [X] records
+>
+> Are these targets correct?
+> - Yes, proceed with these targets
+> - Adjust targets (specify new values)
+> - No specific requirements (use sensible defaults)
+
+**Question 8: Deployment Target**
+> Where will this be deployed?
+> - Docker + self-hosted (Recommended for control)
+> - Cloud managed (AWS/GCP/Azure)
+> - Serverless (Lambda, Cloud Functions)
+> - Local development only (for now)
 
 ### 2. Architecture Decisions
 
@@ -254,7 +339,7 @@ Identify implementation risks:
 
 ### 9. Save Plan
 
-Save to `.claude/specs/$ARGUMENTS-plan.md`:
+Save to `devflow/specs/$ARGUMENTS-plan.md`:
 
 ```markdown
 ---
@@ -262,8 +347,8 @@ name: $ARGUMENTS-plan
 status: draft
 created: [Current ISO date/time]
 updated: [Current ISO date/time]
-spec: .claude/specs/$ARGUMENTS.md
-prd: .claude/prds/$ARGUMENTS.md
+spec: devflow/specs/$ARGUMENTS.md
+prd: devflow/prds/$ARGUMENTS.md
 ---
 
 # Technical Plan: [Feature Name]
@@ -285,7 +370,7 @@ Before saving, verify:
 ### 11. Post-Creation
 
 After successfully creating the plan:
-1. Confirm: "Plan created: .claude/specs/$ARGUMENTS-plan.md"
+1. Confirm: "Plan created: devflow/specs/$ARGUMENTS-plan.md"
 2. Show summary:
    - Architecture decisions: {count}
    - Data models: {count}

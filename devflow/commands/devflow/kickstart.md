@@ -44,16 +44,25 @@ Run the entire Brainstorming Phase sequentially. Adapts its pipeline based on sc
 2. Verify `devflow/devflow.config` exists. If not, warn that `/devflow:init` has not been run.
 3. Check GitHub CLI (`gh`) is authenticated: `gh auth status`.
 
-## Scope Selection
+## Scope Selection — MANDATORY FIRST STEP
 
-**Before any other step**, ask the user to select a scope:
+**Before any other step**, use AskUserQuestion to select scope:
 
-> What are you building?
-> 1. **Product** — New greenfield product (full system: backend, frontend, infra)
-> 2. **Feature** — New feature within an existing product
-> 3. **Library** — Backend library, SDK, or internal package (no UI, API-focused)
+```
+Question: What are you building?
+Header: "Scope"
+Options:
+- Product (Recommended for new apps): New greenfield product - full system with backend, frontend, database, and infrastructure
+- Feature: New feature within an existing product - extends current codebase
+- Library: Backend library, SDK, or internal package - no UI, API-focused, published/consumed by other code
+```
 
 Store the selected scope. The scope changes what each step captures and which steps are skipped.
+
+**IMPORTANT:** The scope selection determines:
+- Which questions to ask in each step
+- Which steps can be skipped
+- The depth of artifacts created
 
 ### Scope Behavior Matrix
 
@@ -109,13 +118,49 @@ prompt: "Execute Step X: [description]. Write output to [path]. Return summary w
 
 For parallel steps, include multiple Task calls in a single message.
 
+## Step Completion Protocol — MANDATORY
+
+**CRITICAL:** Every step MUST follow this protocol:
+
+1. **Execute** the step (run the command logic)
+2. **Verify** the artifact was created correctly
+3. **Present Summary** to user showing what was created
+4. **Confirm** user is satisfied before proceeding
+5. **Log** completion with timestamp
+
+### Step Confirmation Pattern
+
+After each step, use AskUserQuestion:
+
+```
+Step [N] Complete: [Step Name]
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Artifact created: [path]
+Key outputs:
+  - [Summary point 1]
+  - [Summary point 2]
+  - [Summary point 3]
+
+Ready to proceed to Step [N+1]: [Next Step Name]?
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Options:
+- Yes, proceed to [Next Step]
+- Review/edit the artifact first
+- Skip to a different step
+- Stop here (save progress)
+```
+
+**DO NOT proceed to the next step without explicit user confirmation.**
+
 ## Instructions
 
-Execute the following steps. Use TaskCreate to create tasks, then spawn Task agents to execute them. Check if artifacts exist and skip completed steps.
+Execute the following steps IN SEQUENCE. Never skip a step unless the artifact already exists or user explicitly chooses to skip. Use TaskCreate to track progress.
 
 ### Step 0: Scope Selection
 
-Ask the user to select scope: **product**, **feature**, or **library**.
+Use AskUserQuestion to have user select scope: **product**, **feature**, or **library**.
 
 Record the scope in the PRD frontmatter as `scope: product|feature|library`. All subsequent steps read this value to adapt behavior.
 
@@ -294,39 +339,94 @@ Run `/devflow:gate plan <name>`.
 - **CONCERN:** Present concerns to the user. They choose: proceed, iterate, or deep-dive.
 - **PASS:** Continue.
 
-### Step 8b: Generate ADRs
+### Step 8b: Generate ADRs — MANDATORY
 
-**Extract architectural decisions from the plan** and create ADRs for each significant decision.
+**CRITICAL:** Every significant architectural decision from the plan MUST be captured as an ADR in `devflow/adrs/`.
 
-Identify decisions in these categories:
-1. **Technology choices** — database, framework, language versions
-2. **Architecture patterns** — microservices vs monolith, event-driven, etc.
-3. **Data model decisions** — schema design choices, relationships
-4. **Integration decisions** — third-party services, APIs
-5. **Security decisions** — auth approach, encryption, etc.
+#### ADR Extraction Process
 
-For each decision found, run `/arch:adr-new "<decision>"`:
+1. **Scan the plan** for decisions in these categories:
+   - **Technology choices** — database, framework, language versions
+   - **Architecture patterns** — microservices vs monolith, event-driven, etc.
+   - **Data model decisions** — schema design choices, relationships
+   - **Integration decisions** — third-party services, APIs
+   - **Security decisions** — auth approach, encryption, etc.
+   - **API design decisions** — REST/GraphQL, versioning strategy
+
+2. **Create ADR directory if needed:**
+   ```bash
+   mkdir -p devflow/adrs
+   ```
+
+3. **For EACH decision**, run `/arch:adr-new "<decision>"`:
+   - This will prompt for context, options, and rationale
+   - The ADR is saved to `devflow/adrs/ADR-NNN-<slug>.md`
+
+4. **Verify ADR creation:**
+   ```bash
+   ls -la devflow/adrs/ADR-*.md
+   ```
+
+#### ADR Output Format
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-📋 Architecture Decisions Recorded
+📋 ARCHITECTURE DECISIONS RECORDED
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 ADRs created from plan:
-  ✓ ADR-001: Use PostgreSQL as primary database
-  ✓ ADR-002: Use FastAPI for backend API
-  ✓ ADR-003: Use Angular 19 with standalone components
-  ✓ ADR-004: JWT-based authentication with refresh tokens
-  ✓ ADR-005: Feature-based folder structure
+  ✓ devflow/adrs/ADR-001-use-postgresql.md
+    Title: Use PostgreSQL as primary database
+    Status: proposed
 
+  ✓ devflow/adrs/ADR-002-use-fastapi.md
+    Title: Use FastAPI for backend API
+    Status: proposed
+
+  ✓ devflow/adrs/ADR-003-use-angular.md
+    Title: Use Angular 19 with standalone components
+    Status: proposed
+
+  ✓ devflow/adrs/ADR-004-jwt-authentication.md
+    Title: JWT-based authentication with refresh tokens
+    Status: proposed
+
+  ✓ devflow/adrs/ADR-005-feature-folder-structure.md
+    Title: Feature-based folder structure
+    Status: proposed
+
+Total: 5 ADRs created
 Location: devflow/adrs/
+
+Next: ADRs will be updated to "accepted" during execution
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
-**Minimum ADRs per scope:**
-- **Product:** 5+ ADRs (stack, architecture, auth, data model, deployment)
-- **Feature:** 1-3 ADRs (if new patterns or tech introduced)
-- **Library:** 2-3 ADRs (API design, packaging, versioning)
+#### Minimum ADR Requirements
+
+| Scope | Minimum ADRs | Required Categories |
+|-------|--------------|---------------------|
+| **Product** | 5+ | Stack, architecture, auth, data model, deployment |
+| **Feature** | 1-3 | If new patterns or tech introduced |
+| **Library** | 2-3 | API design, packaging, versioning |
+
+**If fewer ADRs than minimum:** Use AskUserQuestion to ask:
+> Only [N] ADRs were extracted. For a [scope] scope, we need at least [minimum].
+>
+> Missing categories:
+> - [category 1]
+> - [category 2]
+>
+> Should we:
+> - Add more ADRs for these categories
+> - Proceed with current ADRs (not recommended)
+
+#### ADR → Code Verification
+
+During execution, gates will verify:
+- Code follows all accepted ADRs
+- No ADR violations
+- ADR status updated from "proposed" to "accepted" when implemented
 
 ### Step 9: Design (conditional)
 

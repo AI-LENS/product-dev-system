@@ -1,5 +1,5 @@
 ---
-allowed-tools: Bash, Read, Write, LS, Task
+allowed-tools: Bash, Read, Write, LS, Task, AskUserQuestion
 ---
 
 # Epic Decompose
@@ -22,17 +22,17 @@ Before proceeding, complete these validation steps.
 Do not bother the user with preflight checks progress. Just do them and move on.
 
 1. **Verify plan or spec exists:**
-   - Check if `.claude/specs/$ARGUMENTS-plan.md` exists (preferred)
-   - If no plan, check if `.claude/specs/$ARGUMENTS.md` exists
+   - Check if `devflow/specs/$ARGUMENTS-plan.md` exists (preferred)
+   - If no plan, check if `devflow/specs/$ARGUMENTS.md` exists
    - If neither found, tell user: "Plan/Spec not found: $ARGUMENTS. Create it first with: /pm:plan $ARGUMENTS"
    - Stop execution if neither exists
 
 2. **Verify or create epic directory:**
-   - Check if `.claude/epics/$ARGUMENTS/` directory exists
-   - If not, create it: `mkdir -p .claude/epics/$ARGUMENTS/`
+   - Check if `devflow/epics/$ARGUMENTS/` directory exists
+   - If not, create it: `mkdir -p devflow/epics/$ARGUMENTS/`
 
 3. **Check for existing tasks:**
-   - Check if any numbered task files (001.md, 002.md, etc.) already exist in `.claude/epics/$ARGUMENTS/`
+   - Check if any numbered task files (001.md, 002.md, etc.) already exist in `devflow/epics/$ARGUMENTS/`
    - If tasks exist, list them and ask: "Found {count} existing tasks. Delete and recreate all tasks? (yes/no)"
    - Only proceed with explicit 'yes' confirmation
    - If user says no, suggest: "View existing tasks with: /pm:epic-show $ARGUMENTS"
@@ -46,14 +46,14 @@ You are decomposing a plan/spec into specific, actionable tasks for: **$ARGUMENT
 
 ### 1. Read the Plan/Spec
 
-- Load the plan from `.claude/specs/$ARGUMENTS-plan.md` (or spec if no plan)
-- Load the spec from `.claude/specs/$ARGUMENTS.md`
+- Load the plan from `devflow/specs/$ARGUMENTS-plan.md` (or spec if no plan)
+- Load the spec from `devflow/specs/$ARGUMENTS.md`
 - Understand the architecture, data model, API design, and project structure
 - Review functional requirements (FR-xxx) and their priorities
 
 ### 2. Create Epic File
 
-Create `.claude/epics/$ARGUMENTS/epic.md`:
+Create `devflow/epics/$ARGUMENTS/epic.md`:
 
 ```markdown
 ---
@@ -63,9 +63,9 @@ created: [Current ISO date/time]
 updated: [Current ISO date/time]
 github:
 progress: 0%
-prd: .claude/prds/$ARGUMENTS.md
-spec: .claude/specs/$ARGUMENTS.md
-plan: .claude/specs/$ARGUMENTS-plan.md
+prd: devflow/prds/$ARGUMENTS.md
+spec: devflow/specs/$ARGUMENTS.md
+plan: devflow/specs/$ARGUMENTS-plan.md
 ---
 
 # Epic: [Feature Name]
@@ -80,6 +80,88 @@ plan: .claude/specs/$ARGUMENTS-plan.md
 [High-level list of task categories]
 ```
 
+### 2b. Task Decomposition Strategy — PROBE QUESTIONING (MANDATORY)
+
+**CRITICAL:** Task breakdown affects development velocity. Validate approach with user using AskUserQuestion.
+
+#### Phase 1: Scope Confirmation
+
+**Question 1: Development Phases**
+> Based on the plan, I can organize work as:
+>
+> **Option A: Feature-based phases** (Recommended for most projects)
+> - Phase 1: Auth (DB + API + UI for auth)
+> - Phase 2: Core Feature (full stack for core)
+> - Phase 3: Secondary Features
+> - Each phase is independently testable
+>
+> **Option B: Layer-based phases** (Faster initial setup)
+> - Phase 1: All DB/Models
+> - Phase 2: All API endpoints
+> - Phase 3: All UI components
+> - Harder to test until all layers complete
+>
+> Which approach?
+> - Feature-based phases (Recommended)
+> - Layer-based phases
+> - Hybrid (mix based on dependencies)
+
+**Question 2: Task Granularity**
+> How granular should tasks be?
+> - Fine (1-2 hours each, many tasks) - Better for tracking, more overhead
+> - Medium (4-8 hours each) - Balanced (Recommended)
+> - Coarse (1-2 days each, fewer tasks) - Less tracking, faster to create
+
+**Question 3: Testing Strategy per Task**
+> How should tests be included?
+> - Each task includes its own tests (Recommended - TDD friendly)
+> - Separate testing tasks after implementation
+> - Testing phase at the end
+
+#### Phase 2: Feature Priority Confirmation
+
+**Question 4: Feature Order**
+> Based on dependencies, I suggest this build order:
+>
+> 1. [Feature A] - Foundation, required by others
+> 2. [Feature B] - Core functionality
+> 3. [Feature C] - Depends on A
+> 4. [Feature D] - Can be parallel with C
+>
+> Is this order correct?
+> - Yes, proceed with this order
+> - Reorder (specify changes)
+> - Some features can be skipped for MVP
+
+**Question 5: MVP Scope**
+> For initial implementation, should we:
+> - Build everything in plan (full scope)
+> - P1 features only (MVP)
+> - P1 + specific P2 features (specify which)
+
+#### Phase 3: Task Validation Preview
+
+After creating draft tasks, present summary:
+
+**Question 6: Task Review**
+> Here are the draft tasks:
+>
+> **Phase 1: [Feature] ([N] tasks)**
+> - Task 001: [Title] - [Effort]
+> - Task 002: [Title] - [Effort]
+> ...
+>
+> **Phase 2: [Feature] ([N] tasks)**
+> ...
+>
+> **Total: [N] tasks, ~[X] hours estimated**
+>
+> Review and confirm:
+> - Looks good, create all tasks
+> - Break down [specific task] further
+> - Combine [these tasks] into one
+> - Remove/defer [specific tasks]
+
 ### 3. Analyze for Parallel Creation
 
 Determine task grouping strategy:
@@ -92,7 +174,7 @@ Determine task grouping strategy:
 
 ### 4. Create Task Files
 
-For each task, create a file: `.claude/epics/$ARGUMENTS/{number}.md`
+For each task, create a file: `devflow/epics/$ARGUMENTS/{number}.md`
 
 ```markdown
 ---
@@ -139,7 +221,7 @@ Clear, concise description of what needs to be done.
 ```
 
 ### 5. Task Naming Convention
-Save tasks as: `.claude/epics/$ARGUMENTS/{task_number}.md`
+Save tasks as: `devflow/epics/$ARGUMENTS/{task_number}.md`
 - Use sequential numbering: 001.md, 002.md, etc.
 - Keep task titles short but descriptive
 

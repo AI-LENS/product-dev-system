@@ -23,8 +23,8 @@ Create a detailed UI specification for a specific section of the application.
    - If empty: "Usage: `/design:shape-section <section>` — e.g., `/design:shape-section user-management`"
 
 2. **Locate the spec:**
-   - Search for spec file: look in `devflow/specs/`, `.claude/specs/`, or project root for a spec file that references `$ARGUMENTS`
-   - Also check PRDs in `devflow/prds/` or `.claude/prds/`
+   - Search for spec file: look in `devflow/specs/`, `devflow/specs/`, or project root for a spec file that references `$ARGUMENTS`
+   - Also check PRDs in `devflow/prds/` or `devflow/prds/`
    - If no spec found, warn: "No spec found for '$ARGUMENTS'. Proceeding with user input only — provide user stories when prompted."
 
 3. **Check for existing section design:**

@@ -23,13 +23,13 @@ Before proceeding, complete these validation steps.
 Do not bother the user with preflight checks progress. Just do them and move on.
 
 ### 1. Verify Spec Exists
-- Check if `.claude/specs/$ARGUMENTS.md` exists
+- Check if `devflow/specs/$ARGUMENTS.md` exists
 - If not found, tell user: "Spec not found: $ARGUMENTS. Create it first with: /pm:spec-create $ARGUMENTS"
 - Stop execution if spec does not exist
 
 ### 2. Read Related Artifacts
-- Read the spec: `.claude/specs/$ARGUMENTS.md`
-- Read the PRD if available: `.claude/prds/$ARGUMENTS.md`
+- Read the spec: `devflow/specs/$ARGUMENTS.md`
+- Read the PRD if available: `devflow/prds/$ARGUMENTS.md`
 - Read active principles if available: `devflow/templates/principles/active-principles.md`
 
 ## Instructions
@@ -120,7 +120,7 @@ For each ambiguity resolved:
 ### 6. Post-Clarification
 
 After successfully updating the spec:
-1. Confirm: "Spec updated: .claude/specs/$ARGUMENTS.md"
+1. Confirm: "Spec updated: devflow/specs/$ARGUMENTS.md"
 2. Show summary:
    - Ambiguities found: {total}
    - Resolved: {resolved_count}

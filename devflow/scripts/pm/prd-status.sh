@@ -4,12 +4,12 @@ echo "PRD Status Report"
 echo "=================="
 echo ""
 
-if [ ! -d ".claude/prds" ]; then
+if [ ! -d "devflow/prds" ]; then
   echo "No PRD directory found."
   exit 0
 fi
 
-total=$(ls .claude/prds/*.md 2>/dev/null | wc -l | tr -d ' ')
+total=$(ls devflow/prds/*.md 2>/dev/null | wc -l | tr -d ' ')
 [ "$total" -eq 0 ] && echo "No PRDs found." && exit 0
 
 # Count by status
@@ -17,7 +17,7 @@ backlog=0
 in_progress=0
 implemented=0
 
-for file in .claude/prds/*.md; do
+for file in devflow/prds/*.md; do
   [ -f "$file" ] || continue
   status=$(grep "^status:" "$file" | head -1 | sed 's/^status: *//')
 
@@ -58,13 +58,13 @@ echo "  Total PRDs: $total"
 echo ""
 echo "Spec Coverage:"
 specs_count=0
-for file in .claude/prds/*.md; do
+for file in devflow/prds/*.md; do
   [ -f "$file" ] || continue
   name=$(basename "$file" .md)
-  if [ -f ".claude/specs/$name.md" ]; then
+  if [ -f "devflow/specs/$name.md" ]; then
     ((specs_count++))
     has_plan=""
-    [ -f ".claude/specs/$name-plan.md" ] && has_plan=" + plan"
+    [ -f "devflow/specs/$name-plan.md" ] && has_plan=" + plan"
     echo "  - $name: has spec$has_plan"
   fi
 done
@@ -73,7 +73,7 @@ echo "  Coverage: $specs_count/$total PRDs have specs"
 # Recent activity
 echo ""
 echo "Recent PRDs (last 5 modified):"
-ls -t .claude/prds/*.md 2>/dev/null | head -5 | while read file; do
+ls -t devflow/prds/*.md 2>/dev/null | head -5 | while read file; do
   name=$(grep "^name:" "$file" | head -1 | sed 's/^name: *//')
   [ -z "$name" ] && name=$(basename "$file" .md)
   status=$(grep "^status:" "$file" | head -1 | sed 's/^status: *//')

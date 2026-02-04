@@ -83,14 +83,14 @@ fi
 # Create directory structure
 echo ""
 echo "Creating directory structure..."
-mkdir -p .claude/prds
-mkdir -p .claude/epics
-mkdir -p .claude/specs
-mkdir -p .claude/context
-echo "  .claude/prds/ - Product requirement documents"
-echo "  .claude/epics/ - Epic and task files"
-echo "  .claude/specs/ - Specifications and plans"
-echo "  .claude/context/ - Project context documentation"
+mkdir -p devflow/prds
+mkdir -p devflow/epics
+mkdir -p devflow/specs
+mkdir -p devflow/context
+echo "  devflow/prds/ - Product requirement documents"
+echo "  devflow/epics/ - Epic and task files"
+echo "  devflow/specs/ - Specifications and plans"
+echo "  devflow/context/ - Project context documentation"
 echo "  Directories created"
 
 # Check for git

@@ -23,7 +23,7 @@ Before proceeding, complete these validation steps.
 Do not bother the user with preflight checks progress. Just do them and move on.
 
 ### 1. Find Task File
-- Search for `$ARGUMENTS.md` across all epic directories: `.claude/epics/*/$ARGUMENTS.md`
+- Search for `$ARGUMENTS.md` across all epic directories: `devflow/epics/*/$ARGUMENTS.md`
 - If not found, tell user: "Task file not found for issue #$ARGUMENTS"
 
 ### 2. Check Task Status
@@ -75,7 +75,7 @@ gh issue close "$ARGUMENTS" --comment "$(cat /tmp/issue-close.md)"
 
 ### 4. Update Progress File
 
-Update `.claude/epics/{epic_name}/updates/$ARGUMENTS/progress.md`:
+Update `devflow/epics/{epic_name}/updates/$ARGUMENTS/progress.md`:
 - Set `completion: 100%`
 - Update `last_sync` field
 - Add closing entry to Work Log

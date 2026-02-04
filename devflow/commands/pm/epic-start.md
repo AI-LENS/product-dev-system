@@ -15,7 +15,7 @@ Launch parallel agents to work on epic tasks in a shared branch.
 
 1. **Verify epic exists:**
    ```bash
-   test -f .claude/epics/$ARGUMENTS/epic.md || echo "Epic not found. Run: /pm:epic-decompose $ARGUMENTS"
+   test -f devflow/epics/$ARGUMENTS/epic.md || echo "Epic not found. Run: /pm:epic-decompose $ARGUMENTS"
    ```
 
 2. **Check GitHub sync:**
@@ -60,7 +60,7 @@ fi
 
 ### 2. Identify Ready Issues
 
-Read all task files in `.claude/epics/$ARGUMENTS/`:
+Read all task files in `devflow/epics/$ARGUMENTS/`:
 - Parse frontmatter for `status`, `depends_on`, `parallel` fields
 - Check GitHub issue status if needed
 - Build dependency graph
@@ -75,7 +75,7 @@ Categorize issues:
 
 For each ready issue without analysis:
 ```bash
-if ! test -f .claude/epics/$ARGUMENTS/{issue}-analysis.md; then
+if ! test -f devflow/epics/$ARGUMENTS/{issue}-analysis.md; then
   echo "Analyzing issue #{issue}..."
 fi
 ```
@@ -98,8 +98,8 @@ Task:
     - Work: {stream_description}
 
     Read full requirements from:
-    - .claude/epics/$ARGUMENTS/{task_file}
-    - .claude/epics/$ARGUMENTS/{issue}-analysis.md
+    - devflow/epics/$ARGUMENTS/{task_file}
+    - devflow/epics/$ARGUMENTS/{issue}-analysis.md
 
     Follow coordination rules in devflow/rules/agent-coordination.md
 
@@ -107,12 +107,12 @@ Task:
     "Issue #{issue}: {specific change}"
 
     Update progress in:
-    .claude/epics/$ARGUMENTS/updates/{issue}/stream-{X}.md
+    devflow/epics/$ARGUMENTS/updates/{issue}/stream-{X}.md
 ```
 
 ### 5. Track Active Agents
 
-Create/update `.claude/epics/$ARGUMENTS/execution-status.md`:
+Create/update `devflow/epics/$ARGUMENTS/execution-status.md`:
 
 ```markdown
 ---

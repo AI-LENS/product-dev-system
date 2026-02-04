@@ -1,5 +1,5 @@
 ---
-allowed-tools: Bash, Read, Write, LS
+allowed-tools: Bash, Read, Write, LS, AskUserQuestion
 ---
 
 # PRD New
@@ -29,15 +29,15 @@ Do not bother the user with preflight checks progress ("I'm not going to ..."). 
    - If invalid, tell user: "Feature name must be kebab-case (lowercase letters, numbers, hyphens only). Examples: user-auth, payment-v2, notification-system"
 
 2. **Check for existing PRD:**
-   - Check if `.claude/prds/$ARGUMENTS.md` already exists
+   - Check if `devflow/prds/$ARGUMENTS.md` already exists
    - If it exists, ask user: "PRD '$ARGUMENTS' already exists. Do you want to overwrite it? (yes/no)"
    - Only proceed with explicit 'yes' confirmation
    - If user says no, suggest: "Use a different name or run: /pm:prd-edit $ARGUMENTS to edit the existing PRD"
 
 3. **Verify directory structure:**
-   - Check if `.claude/prds/` directory exists
+   - Check if `devflow/prds/` directory exists
    - If not, create it first
-   - If unable to create, tell user: "Cannot create PRD directory. Please manually create: .claude/prds/"
+   - If unable to create, tell user: "Cannot create PRD directory. Please manually create: devflow/prds/"
 
 ## Instructions
 
@@ -45,14 +45,101 @@ You are a product manager creating a comprehensive Product Requirements Document
 
 Follow this structured approach:
 
-### 1. Discovery & Context
-- Ask clarifying questions about the feature/product "$ARGUMENTS"
-- Understand the problem being solved
-- Identify target users and use cases
-- Gather constraints and requirements
-- Ask about the backend stack (default: Python + FastAPI)
-- Ask about the frontend stack (default: Angular or React)
-- Ask about the database (default: PostgreSQL)
+### 1. Discovery & Context — PROBLEM DEEP-DIVE (MANDATORY)
+
+**CRITICAL:** This is the most important step. You MUST thoroughly understand the problem before defining solutions. Use AskUserQuestion systematically.
+
+#### Phase 1: Problem Statement (3-5 questions)
+
+Use AskUserQuestion to probe the problem:
+
+**Question 1: Problem Origin**
+> What specific pain point or opportunity triggered this?
+> - Existing workflow is too slow/manual
+> - Users are requesting this feature
+> - Competitive pressure
+> - New market opportunity
+> - Technical debt causing issues
+> - Compliance/regulatory requirement
+
+**Question 2: Impact Assessment**
+> How severe is this problem today?
+> - Critical: Blocking users, causing revenue loss
+> - High: Significant friction, workarounds needed
+> - Medium: Annoyance but manageable
+> - Low: Nice-to-have improvement
+
+**Question 3: Current State**
+> How are users solving this problem today?
+> - Manual process (describe)
+> - Third-party tool
+> - They can't (feature gap)
+> - Internal workaround
+
+**Question 4: Success Vision**
+> What does success look like when this is solved?
+> - Specific outcome (e.g., "Users can X in under Y minutes")
+> - Metric improvement (e.g., "Reduce support tickets by 50%")
+> - User sentiment (e.g., "Users no longer complain about X")
+
+#### Phase 2: User Understanding (2-3 questions)
+
+**Question 5: Primary Users**
+> Who are the primary users of this solution?
+> Options should be specific roles, not generic "users"
+> Examples: Admin users, End customers, API consumers, Internal team members
+
+**Question 6: User Context**
+> What is true about these users?
+> - Technical skill level
+> - Frequency of use (daily, weekly, occasionally)
+> - Environment (mobile, desktop, both)
+> - Urgency (real-time needs vs batch)
+
+#### Phase 3: Constraints Discovery (2-3 questions)
+
+**Question 7: Technical Constraints**
+> Are there any technical constraints we must respect?
+> - Must integrate with existing system X
+> - Cannot change database schema
+> - Must support legacy API
+> - Performance requirements (latency, throughput)
+> - No constraints - greenfield
+
+**Question 8: Business Constraints**
+> Are there business/timeline constraints?
+> - Hard deadline (compliance, launch, etc.)
+> - Budget limitations
+> - Team size limitations
+> - Must not break existing functionality
+
+**Question 9: Out of Scope Confirmation**
+> What should we explicitly NOT build?
+> (This prevents scope creep and sets clear boundaries)
+
+#### Phase 4: Tech Stack Confirmation
+
+**Question 10: Backend Stack**
+> Backend technology (default: Python + FastAPI)?
+> - Python + FastAPI (Recommended)
+> - Python + Django
+> - Node.js + Express
+> - Other (specify)
+
+**Question 11: Frontend Stack**
+> Frontend technology (if applicable)?
+> - Angular + DaisyUI + Tailwind (Recommended for complex apps)
+> - React + Tailwind (Recommended for simpler apps)
+> - No frontend (API/library only)
+> - Other (specify)
+
+**Question 12: Database**
+> Database (default: PostgreSQL)?
+> - PostgreSQL (Recommended)
+> - MySQL
+> - MongoDB
+> - SQLite (dev only)
+> - Other (specify)
 
 ### 2. PRD Structure
 Create a comprehensive PRD with these sections:
@@ -109,7 +196,7 @@ Create a comprehensive PRD with these sections:
 - Infrastructure dependencies
 
 ### 3. File Format with Frontmatter
-Save the completed PRD to: `.claude/prds/$ARGUMENTS.md` with this exact structure:
+Save the completed PRD to: `devflow/prds/$ARGUMENTS.md` with this exact structure:
 
 ```markdown
 ---
@@ -172,14 +259,39 @@ Before saving the PRD, verify:
 - [ ] Non-functional requirements have specific numbers
 - [ ] Tech stack assumptions are documented
 
-### 6. Post-Creation
+### 6. PRD Review & Validation (MANDATORY)
+
+Before finalizing, present the PRD summary to the user and validate:
+
+**Use AskUserQuestion:**
+> I've drafted the PRD based on our discussion. Please review:
+>
+> **Problem:** [1-sentence summary]
+> **Users:** [Primary user types]
+> **Core Features:** [Bullet list]
+> **Success Metrics:** [Key metrics]
+> **Out of Scope:** [Key exclusions]
+>
+> Does this accurately capture what you want to build?
+> - Yes, proceed to save
+> - Needs changes (specify what)
+> - Start over with different focus
+
+If changes needed, iterate until user confirms.
+
+### 7. Post-Creation
 
 After successfully creating the PRD:
-1. Confirm: "PRD created: .claude/prds/$ARGUMENTS.md"
-2. Show brief summary of what was captured
-3. Suggest next steps:
-   - "Create a formal spec: /pm:spec-create $ARGUMENTS"
-   - "Or jump to epic decomposition: /pm:epic-decompose $ARGUMENTS"
+1. Confirm: "PRD created: devflow/prds/$ARGUMENTS.md"
+2. Show brief summary of what was captured:
+   - Problem statement
+   - Primary users
+   - Core features count
+   - Success criteria count
+   - Constraints identified
+3. **IMPORTANT:** Suggest the NEXT step in sequence:
+   - "Next step: Create a formal spec: /pm:spec-create $ARGUMENTS"
+   - "This will transform your PRD into detailed user stories with acceptance criteria."
 
 ## Error Recovery
 
@@ -188,4 +300,6 @@ If any step fails:
 - Provide specific steps to fix the issue
 - Never leave partial or corrupted files
 
-Conduct a thorough brainstorming session before writing the PRD. Ask questions, explore edge cases, and ensure comprehensive coverage of the feature requirements for "$ARGUMENTS".
+## Key Principle
+
+**Problem-first, solution-second.** The PRD must clearly articulate the problem BEFORE defining features. Every feature should trace back to a validated user pain point discovered in the probe questioning phase.

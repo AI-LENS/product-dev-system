@@ -1,5 +1,5 @@
 ---
-allowed-tools: Bash, Read, Write, LS
+allowed-tools: Bash, Read, Write, LS, AskUserQuestion
 ---
 
 # Spec Create
@@ -23,18 +23,18 @@ Before proceeding, complete these validation steps.
 Do not bother the user with preflight checks progress. Just do them and move on.
 
 ### 1. Verify PRD Exists
-- Check if `.claude/prds/$ARGUMENTS.md` exists
+- Check if `devflow/prds/$ARGUMENTS.md` exists
 - If not found, tell user: "PRD not found: $ARGUMENTS. Create it first with: /pm:prd-new $ARGUMENTS"
 - Stop execution if PRD does not exist
 
 ### 2. Check for Existing Spec
-- Check if `.claude/specs/$ARGUMENTS.md` already exists
+- Check if `devflow/specs/$ARGUMENTS.md` already exists
 - If it exists, ask user: "Spec '$ARGUMENTS' already exists. Do you want to overwrite it? (yes/no)"
 - Only proceed with explicit 'yes' confirmation
 
 ### 3. Verify Directory Structure
-- Check if `.claude/specs/` directory exists
-- If not, create it: `mkdir -p .claude/specs/`
+- Check if `devflow/specs/` directory exists
+- If not, create it: `mkdir -p devflow/specs/`
 
 ### 4. Load Active Principles
 - Check if `devflow/templates/principles/active-principles.md` exists
@@ -51,10 +51,67 @@ Do not bother the user with preflight checks progress. Just do them and move on.
 
 ### 1. Read and Analyze PRD
 
-Read `.claude/prds/$ARGUMENTS.md`:
+Read `devflow/prds/$ARGUMENTS.md`:
 - Parse all sections: Executive Summary, Problem Statement, User Stories, Requirements, Success Criteria, Constraints, Out of Scope, Dependencies
 - Identify key entities, actors, and actions
 - Note all functional and non-functional requirements
+
+### 1b. User Story Validation — PROBE QUESTIONING (MANDATORY)
+
+**CRITICAL:** Before formalizing, validate understanding with the user. Use AskUserQuestion.
+
+#### Phase 1: Core Flow Validation
+
+For each major feature identified in the PRD, confirm the primary user flow:
+
+**Question 1: Primary User Flow**
+> For [Feature X], what is the MAIN user flow?
+> Present 2-3 options based on PRD analysis:
+> - Option A: [Flow A description]
+> - Option B: [Flow B description]
+> - Other (user specifies)
+
+**Question 2: Critical Acceptance Criteria**
+> What MUST be true for [Feature X] to be considered complete?
+> - [Proposed criterion 1 from PRD]
+> - [Proposed criterion 2 from PRD]
+> - Add more criteria
+> - These are sufficient
+
+#### Phase 2: Priority Validation
+
+**Question 3: Priority Confirmation**
+> I've identified these priorities from the PRD. Correct?
+>
+> **P1 (Must Have):**
+> - [Feature list]
+>
+> **P2 (Should Have):**
+> - [Feature list]
+>
+> **P3 (Nice to Have):**
+> - [Feature list]
+>
+> Options:
+> - Correct as shown
+> - Move some items (specify which)
+> - All are P1 (warning: this usually means not enough prioritization)
+
+#### Phase 3: Edge Cases & Error Handling
+
+**Question 4: Error Scenarios**
+> What should happen when things go wrong?
+> For each core feature, ask:
+> - Invalid input handling
+> - Permission denied scenarios
+> - System unavailable scenarios
+> - Concurrent modification conflicts
+
+**Question 5: Empty/Boundary States**
+> What about edge cases?
+> - Empty state (no data yet)
+> - Maximum limits (how many items? how much data?)
+> - First-time user experience
 
 ### 2. Create User Stories with Acceptance Criteria
 
@@ -129,7 +186,7 @@ Transform PRD success criteria into measurable specifications:
 
 ### 6. Compile Spec Document
 
-Save to `.claude/specs/$ARGUMENTS.md` with this structure:
+Save to `devflow/specs/$ARGUMENTS.md` with this structure:
 
 ```markdown
 ---
@@ -138,7 +195,7 @@ status: draft
 priority: P1
 created: [Current ISO date/time]
 updated: [Current ISO date/time]
-prd: .claude/prds/$ARGUMENTS.md
+prd: devflow/prds/$ARGUMENTS.md
 ---
 
 # Spec: [Feature Name - Title Case]
@@ -183,11 +240,33 @@ prd: .claude/prds/$ARGUMENTS.md
 - [Any unresolved questions from the PRD]
 
 ## References
-- PRD: .claude/prds/$ARGUMENTS.md
+- PRD: devflow/prds/$ARGUMENTS.md
 - Principles: devflow/templates/principles/active-principles.md
 ```
 
-### 7. Quality Checks
+### 7. Spec Review & Validation (MANDATORY)
+
+Before saving, present a summary to the user using AskUserQuestion:
+
+> **Spec Summary for: $ARGUMENTS**
+>
+> **User Stories:** [count] (P1: [n], P2: [n], P3: [n])
+> **Functional Requirements:** [count]
+> **Key Entities:** [list]
+> **Success Criteria:** [count]
+>
+> Key acceptance criteria:
+> - [Top 3-5 most important criteria]
+>
+> Does this accurately capture the requirements?
+> - Yes, save the spec
+> - Needs changes (specify what)
+> - Add more user stories
+> - Adjust priorities
+
+Iterate until user confirms.
+
+### 8. Quality Checks
 
 Before saving the spec, verify:
 - [ ] All user stories have Given/When/Then acceptance criteria
@@ -199,19 +278,18 @@ Before saving the spec, verify:
 - [ ] Spec does not contradict active principles
 - [ ] Out of scope items from PRD are carried forward
 
-### 8. Post-Creation
+### 9. Post-Creation
 
 After successfully creating the spec:
-1. Confirm: "Spec created: .claude/specs/$ARGUMENTS.md"
+1. Confirm: "Spec created: devflow/specs/$ARGUMENTS.md"
 2. Show summary:
    - Total user stories: {count} (P1: {count}, P2: {count}, P3: {count})
    - Total functional requirements: {count}
    - Total entities: {count}
    - Open questions: {count}
-3. Suggest next steps:
-   - "Clarify ambiguities: /pm:spec-clarify $ARGUMENTS"
-   - "Analyze for consistency: /pm:spec-analyze $ARGUMENTS"
-   - "Create technical plan: /pm:plan $ARGUMENTS"
+3. **IMPORTANT:** Suggest the NEXT step in sequence:
+   - "Next step: /pm:spec-clarify $ARGUMENTS (optional but recommended for complex features)"
+   - "Or skip to: /pm:plan $ARGUMENTS to create the technical implementation plan"
 
 ## Error Recovery
 

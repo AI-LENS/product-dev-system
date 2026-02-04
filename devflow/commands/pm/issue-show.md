@@ -22,7 +22,7 @@ Before proceeding, complete these validation steps.
 Do not bother the user with preflight checks progress. Just do them and move on.
 
 ### 1. Find Task File
-- Search for `$ARGUMENTS.md` across all epic directories: `.claude/epics/*/$ARGUMENTS.md`
+- Search for `$ARGUMENTS.md` across all epic directories: `devflow/epics/*/$ARGUMENTS.md`
 - If not found, tell user: "Task file not found for issue #$ARGUMENTS"
 - If found in multiple epics, list them and ask which one
 
@@ -46,8 +46,8 @@ gh issue view "$issue_number" --json state,title,labels,body,assignees,comments,
 
 Look for progress files:
 ```bash
-epic_name=$(find .claude/epics -name "$ARGUMENTS.md" -exec dirname {} \; | head -1 | xargs basename)
-ls .claude/epics/$epic_name/updates/$ARGUMENTS/ 2>/dev/null
+epic_name=$(find devflow/epics -name "$ARGUMENTS.md" -exec dirname {} \; | head -1 | xargs basename)
+ls devflow/epics/$epic_name/updates/$ARGUMENTS/ 2>/dev/null
 ```
 
 ### 4. Display Issue Details

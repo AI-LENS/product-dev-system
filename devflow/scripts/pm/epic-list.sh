@@ -3,12 +3,12 @@ echo "Loading epics..."
 echo ""
 echo ""
 
-if [ ! -d ".claude/epics" ]; then
+if [ ! -d "devflow/epics" ]; then
   echo "No epics directory found. Create your first epic with: /pm:epic-decompose <feature-name>"
   exit 0
 fi
 
-epic_dirs=$(ls -d .claude/epics/*/ 2>/dev/null || true)
+epic_dirs=$(ls -d devflow/epics/*/ 2>/dev/null || true)
 if [ -z "$epic_dirs" ]; then
   echo "No epics found. Create your first epic with: /pm:epic-decompose <feature-name>"
   exit 0
@@ -24,7 +24,7 @@ in_progress_epics=""
 completed_epics=""
 
 # Process all epics
-for dir in .claude/epics/*/; do
+for dir in devflow/epics/*/; do
   [ -d "$dir" ] || continue
   [ -f "$dir/epic.md" ] || continue
 
@@ -93,8 +93,8 @@ fi
 # Summary
 echo ""
 echo "Summary"
-total=$(ls -d .claude/epics/*/ 2>/dev/null | wc -l | tr -d ' ')
-tasks=$(find .claude/epics -name "[0-9]*.md" 2>/dev/null | wc -l | tr -d ' ')
+total=$(ls -d devflow/epics/*/ 2>/dev/null | wc -l | tr -d ' ')
+tasks=$(find devflow/epics -name "[0-9]*.md" 2>/dev/null | wc -l | tr -d ' ')
 echo "   Total epics: $total"
 echo "   Total tasks: $tasks"
 

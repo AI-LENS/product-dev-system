@@ -143,7 +143,7 @@ Print summary based on what was configured:
 
 Repository: owner/repo
 Labels: epic, task, P1, P2, P3, blocked, in-progress
-Directories: .claude/prds, specs, epics, context, adrs
+Directories: devflow/prds, specs, epics, context, adrs
 
 Next steps:
   /devflow:kickstart <name>  - Run full brainstorming phase
@@ -154,7 +154,7 @@ Next steps:
 ```
 ✅ Product-dev-system initialized (local only)
 
-Directories: .claude/prds, specs, epics, context, adrs
+Directories: devflow/prds, specs, epics, context, adrs
 
 ⚠️  GitHub not configured - issue sync disabled
     Run /devflow:init again after setting up git remote

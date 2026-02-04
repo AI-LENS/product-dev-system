@@ -23,7 +23,7 @@ Before proceeding, complete these validation steps.
 Do not bother the user with preflight checks progress. Just do them and move on.
 
 ### 1. Find Task File
-- Search for `$ARGUMENTS.md` across all epic directories: `.claude/epics/*/$ARGUMENTS.md`
+- Search for `$ARGUMENTS.md` across all epic directories: `devflow/epics/*/$ARGUMENTS.md`
 - If not found, tell user: "Task file not found for issue #$ARGUMENTS"
 
 ### 2. Check Repository Protection
@@ -38,9 +38,9 @@ Do not bother the user with preflight checks progress. Just do them and move on.
 ### 1. Gather Progress Information
 
 Read local state:
-- Task file: `.claude/epics/{epic_name}/$ARGUMENTS.md`
-- Progress file: `.claude/epics/{epic_name}/updates/$ARGUMENTS/progress.md`
-- Stream files: `.claude/epics/{epic_name}/updates/$ARGUMENTS/stream-*.md`
+- Task file: `devflow/epics/{epic_name}/$ARGUMENTS.md`
+- Progress file: `devflow/epics/{epic_name}/updates/$ARGUMENTS/progress.md`
+- Stream files: `devflow/epics/{epic_name}/updates/$ARGUMENTS/stream-*.md`
 
 Gather git information:
 ```bash

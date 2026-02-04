@@ -23,7 +23,7 @@ Generate TypeScript interfaces, mock data, factory functions, and JSON fixtures 
    - If empty: "Usage: `/design:sample-data <section>` — e.g., `/design:sample-data user-management`"
 
 2. **Locate entity definitions:**
-   - Check spec files in `devflow/specs/`, `.claude/specs/` for entity definitions related to `$ARGUMENTS`
+   - Check spec files in `devflow/specs/`, `devflow/specs/` for entity definitions related to `$ARGUMENTS`
    - Check section design in `devflow/designs/$ARGUMENTS.md` for data requirements
    - Check PRDs for entity descriptions
    - If no entities found, ask user: "What are the key entities for this section? (e.g., User, Role, Permission)"

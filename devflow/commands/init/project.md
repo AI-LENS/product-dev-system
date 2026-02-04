@@ -52,7 +52,7 @@ Create the following structure:
 {project-name}/
 ├── .github/
 │   └── workflows/
-├── .claude/
+├── devflow/
 │   └── adrs/
 ├── backend/
 │   ├── app/
@@ -512,7 +512,7 @@ CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
 ## Project Structure
 - backend/ — Python FastAPI application
 - frontend/ — {Framework} application
-- .claude/adrs/ — Architecture Decision Records
+- devflow/adrs/ — Architecture Decision Records
 ```
 
 ### Step 6: Initialize Git

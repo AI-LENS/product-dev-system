@@ -20,7 +20,7 @@ Lists all Architecture Decision Records from the `devflow/adrs/` directory, show
 
 ### Step 1: Check ADR Directory
 ```bash
-test -d .claude/adrs || echo "NO_ADRS_DIR"
+test -d devflow/adrs || echo "NO_ADRS_DIR"
 ```
 If directory does not exist:
 ```

@@ -1,13 +1,13 @@
 #!/bin/bash
 
 # Check if PRD directory exists
-if [ ! -d ".claude/prds" ]; then
+if [ ! -d "devflow/prds" ]; then
   echo "No PRD directory found. Create your first PRD with: /pm:prd-new <feature-name>"
   exit 0
 fi
 
 # Check for PRD files
-if ! ls .claude/prds/*.md >/dev/null 2>&1; then
+if ! ls devflow/prds/*.md >/dev/null 2>&1; then
   echo "No PRDs found. Create your first PRD with: /pm:prd-new <feature-name>"
   exit 0
 fi
@@ -28,7 +28,7 @@ echo ""
 
 # Display by status groups
 echo "Backlog PRDs:"
-for file in .claude/prds/*.md; do
+for file in devflow/prds/*.md; do
   [ -f "$file" ] || continue
   status=$(grep "^status:" "$file" | head -1 | sed 's/^status: *//')
   if [ "$status" = "backlog" ] || [ "$status" = "draft" ] || [ -z "$status" ]; then
@@ -45,7 +45,7 @@ done
 
 echo ""
 echo "In-Progress PRDs:"
-for file in .claude/prds/*.md; do
+for file in devflow/prds/*.md; do
   [ -f "$file" ] || continue
   status=$(grep "^status:" "$file" | head -1 | sed 's/^status: *//')
   if [ "$status" = "in-progress" ] || [ "$status" = "active" ]; then
@@ -61,7 +61,7 @@ done
 
 echo ""
 echo "Implemented PRDs:"
-for file in .claude/prds/*.md; do
+for file in devflow/prds/*.md; do
   [ -f "$file" ] || continue
   status=$(grep "^status:" "$file" | head -1 | sed 's/^status: *//')
   if [ "$status" = "implemented" ] || [ "$status" = "completed" ] || [ "$status" = "done" ]; then

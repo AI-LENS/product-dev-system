@@ -10,11 +10,11 @@ echo ""
 
 # PRDs
 echo "PRDs:"
-if [ -d ".claude/prds" ]; then
-  total=$(ls .claude/prds/*.md 2>/dev/null | wc -l | tr -d ' ')
-  backlog=$(find .claude/prds -name "*.md" -exec grep -l "^status: *backlog" {} \; 2>/dev/null | wc -l | tr -d ' ')
-  in_progress=$(find .claude/prds -name "*.md" -exec grep -l "^status: *in-progress" {} \; 2>/dev/null | wc -l | tr -d ' ')
-  implemented=$(find .claude/prds -name "*.md" -exec grep -l "^status: *implemented" {} \; 2>/dev/null | wc -l | tr -d ' ')
+if [ -d "devflow/prds" ]; then
+  total=$(ls devflow/prds/*.md 2>/dev/null | wc -l | tr -d ' ')
+  backlog=$(find devflow/prds -name "*.md" -exec grep -l "^status: *backlog" {} \; 2>/dev/null | wc -l | tr -d ' ')
+  in_progress=$(find devflow/prds -name "*.md" -exec grep -l "^status: *in-progress" {} \; 2>/dev/null | wc -l | tr -d ' ')
+  implemented=$(find devflow/prds -name "*.md" -exec grep -l "^status: *implemented" {} \; 2>/dev/null | wc -l | tr -d ' ')
   echo "  Total: $total (Backlog: $backlog, Active: $in_progress, Done: $implemented)"
 else
   echo "  No PRDs found"
@@ -24,9 +24,9 @@ echo ""
 
 # Specs
 echo "Specs:"
-if [ -d ".claude/specs" ]; then
-  specs=$(ls .claude/specs/*.md 2>/dev/null | grep -v "\-plan.md" | wc -l | tr -d ' ')
-  plans=$(ls .claude/specs/*-plan.md 2>/dev/null | wc -l | tr -d ' ')
+if [ -d "devflow/specs" ]; then
+  specs=$(ls devflow/specs/*.md 2>/dev/null | grep -v "\-plan.md" | wc -l | tr -d ' ')
+  plans=$(ls devflow/specs/*-plan.md 2>/dev/null | wc -l | tr -d ' ')
   echo "  Specs: $specs, Plans: $plans"
 else
   echo "  No specs found"
@@ -36,11 +36,11 @@ echo ""
 
 # Epics
 echo "Epics:"
-if [ -d ".claude/epics" ]; then
-  total_epics=$(ls -d .claude/epics/*/ 2>/dev/null | wc -l | tr -d ' ')
+if [ -d "devflow/epics" ]; then
+  total_epics=$(ls -d devflow/epics/*/ 2>/dev/null | wc -l | tr -d ' ')
   echo "  Total: $total_epics"
 
-  for epic_dir in .claude/epics/*/; do
+  for epic_dir in devflow/epics/*/; do
     [ -d "$epic_dir" ] || continue
     [ -f "$epic_dir/epic.md" ] || continue
 
@@ -59,11 +59,11 @@ echo ""
 
 # Tasks
 echo "Tasks:"
-if [ -d ".claude/epics" ]; then
-  total=$(find .claude/epics -name "[0-9]*.md" 2>/dev/null | wc -l | tr -d ' ')
-  open=$(find .claude/epics -name "[0-9]*.md" -exec grep -l "^status: *open" {} \; 2>/dev/null | wc -l | tr -d ' ')
-  in_prog=$(find .claude/epics -name "[0-9]*.md" -exec grep -l "^status: *in-progress" {} \; 2>/dev/null | wc -l | tr -d ' ')
-  closed=$(find .claude/epics -name "[0-9]*.md" -exec grep -l "^status: *closed" {} \; 2>/dev/null | wc -l | tr -d ' ')
+if [ -d "devflow/epics" ]; then
+  total=$(find devflow/epics -name "[0-9]*.md" 2>/dev/null | wc -l | tr -d ' ')
+  open=$(find devflow/epics -name "[0-9]*.md" -exec grep -l "^status: *open" {} \; 2>/dev/null | wc -l | tr -d ' ')
+  in_prog=$(find devflow/epics -name "[0-9]*.md" -exec grep -l "^status: *in-progress" {} \; 2>/dev/null | wc -l | tr -d ' ')
+  closed=$(find devflow/epics -name "[0-9]*.md" -exec grep -l "^status: *closed" {} \; 2>/dev/null | wc -l | tr -d ' ')
   echo "  Open: $open | In Progress: $in_prog | Closed: $closed | Total: $total"
 else
   echo "  No tasks found"

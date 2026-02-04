@@ -20,7 +20,7 @@ The pre-tool-use hook detects when you're in a worktree and injects the necessar
 
 ### Configuration
 
-Add to your `.claude/settings.json`:
+Add to your `devflow/settings.json`:
 
 ```json
 {
@@ -28,7 +28,7 @@ Add to your `.claude/settings.json`:
     "pre-tool-use": {
       "Bash": {
         "enabled": true,
-        "script": ".claude/hooks/bash-worktree-fix.sh",
+        "script": "devflow/hooks/bash-worktree-fix.sh",
         "apply_to_subagents": true
       }
     }
@@ -43,11 +43,11 @@ Add to your `.claude/settings.json`:
 export CLAUDE_HOOK_DEBUG=true
 
 # Test in main repo (should pass through)
-.claude/hooks/bash-worktree-fix.sh "ls -la"
+devflow/hooks/bash-worktree-fix.sh "ls -la"
 
 # Test in worktree (should inject cd)
 cd /path/to/worktree
-.claude/hooks/bash-worktree-fix.sh "npm install"
+devflow/hooks/bash-worktree-fix.sh "npm install"
 # Output: cd "/path/to/worktree" && npm install
 ```
 

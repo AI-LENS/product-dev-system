@@ -33,8 +33,8 @@ fi
 echo ""
 echo "Currently In Progress:"
 in_progress_count=0
-if [ -d ".claude/epics" ]; then
-  for epic_dir in .claude/epics/*/; do
+if [ -d "devflow/epics" ]; then
+  for epic_dir in devflow/epics/*/; do
     [ -d "$epic_dir" ] || continue
     epic_name=$(basename "$epic_dir")
 
@@ -59,7 +59,7 @@ fi
 echo ""
 echo "Next Available Tasks:"
 count=0
-for epic_dir in .claude/epics/*/; do
+for epic_dir in devflow/epics/*/; do
   [ -d "$epic_dir" ] || continue
   for task_file in "$epic_dir"/[0-9]*.md; do
     [ -f "$task_file" ] || continue
@@ -91,9 +91,9 @@ done
 
 echo ""
 echo "Quick Stats:"
-total_tasks=$(find .claude/epics -name "[0-9]*.md" 2>/dev/null | wc -l | tr -d ' ')
-open_tasks=$(find .claude/epics -name "[0-9]*.md" -exec grep -l "^status: *open" {} \; 2>/dev/null | wc -l | tr -d ' ')
-closed_tasks=$(find .claude/epics -name "[0-9]*.md" -exec grep -l "^status: *closed" {} \; 2>/dev/null | wc -l | tr -d ' ')
+total_tasks=$(find devflow/epics -name "[0-9]*.md" 2>/dev/null | wc -l | tr -d ' ')
+open_tasks=$(find devflow/epics -name "[0-9]*.md" -exec grep -l "^status: *open" {} \; 2>/dev/null | wc -l | tr -d ' ')
+closed_tasks=$(find devflow/epics -name "[0-9]*.md" -exec grep -l "^status: *closed" {} \; 2>/dev/null | wc -l | tr -d ' ')
 echo "  Tasks: $open_tasks open, $in_progress_count in-progress, $closed_tasks closed, $total_tasks total"
 
 # Recent git activity

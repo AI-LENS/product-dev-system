@@ -22,15 +22,15 @@ Before proceeding, complete these validation steps.
 Do not bother the user with preflight checks progress. Just do them and move on.
 
 ### 1. Verify Spec Exists
-- Check if `.claude/specs/$ARGUMENTS.md` exists
+- Check if `devflow/specs/$ARGUMENTS.md` exists
 - If not found, tell user: "Spec not found: $ARGUMENTS. Create it first with: /pm:spec-create $ARGUMENTS"
 - Stop execution if spec does not exist
 
 ### 2. Gather All Related Artifacts
-- Read spec: `.claude/specs/$ARGUMENTS.md`
-- Read PRD (if exists): `.claude/prds/$ARGUMENTS.md`
+- Read spec: `devflow/specs/$ARGUMENTS.md`
+- Read PRD (if exists): `devflow/prds/$ARGUMENTS.md`
 - Read principles (if exists): `devflow/templates/principles/active-principles.md`
-- Read plan (if exists): `.claude/specs/$ARGUMENTS-plan.md`
+- Read plan (if exists): `devflow/specs/$ARGUMENTS-plan.md`
 - Note which artifacts are available for analysis
 
 ## Instructions

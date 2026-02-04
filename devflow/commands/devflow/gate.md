@@ -6,177 +6,469 @@ allowed-tools: Bash, Read, Write, Edit, Glob, Grep, Task, AskUserQuestion
 
 Run a stage-specific quality gate on an artifact. Gates verify that each pipeline step produced output good enough for the next step to consume.
 
+## Core Principles — NON-NEGOTIABLE
+
+**1. NO BYPASS:** Gate failures MUST be fixed. Cannot skip or override without explicit documented rationale.
+
+**2. TRACEABILITY:** Every downstream artifact MUST trace to upstream requirements.
+
+**3. BLOCK ON CRITICAL:** Any critical issue is a hard stop. No exceptions.
+
+**4. FULL VERIFICATION:** Gates run ALL checks, not samples.
+
 ## Usage
 
 ```
 /devflow:gate <gate-name> <feature-name>
 ```
 
-**Gate names:** `prd`, `spec`, `plan`, `epic`, `bootstrap`, `task`, `build`, `test`, `quality`, `review`
+**Gate names:** `prd`, `spec`, `plan`, `epic`, `bootstrap`, `task`, `phase`, `build`, `test`, `quality`, `review`
 
 ## Required Rules
 
 - `devflow/rules/elite-dev-protocol.md`
 - `devflow/rules/datetime.md`
 - `devflow/rules/frontmatter-operations.md`
+- `devflow/rules/adr-patterns.md`
 
 ## Preflight Checklist
 
-1. Verify `<gate-name>` is one of: `prd`, `spec`, `plan`, `epic`, `bootstrap`, `task`, `build`, `test`, `quality`, `review`. If invalid, print valid options and stop.
+1. Verify `<gate-name>` is valid. If invalid, print valid options and STOP.
 2. Verify `<feature-name>` is provided.
-3. Read `gate_mode` from `devflow/devflow.config`. Default to `standard` if not set.
-4. Verify the subject artifact exists (see Subject Artifacts table below).
+3. Read `gate_mode` from `devflow/devflow.config`. Default to `strict` if not set.
+4. Verify the subject artifact exists.
+5. Load ALL upstream artifacts for comparison.
 
-### Subject Artifacts
+## Gate Mode Configuration
 
-| Gate | Required Artifact | Upstream Artifacts (also read) |
-|------|-------------------|-------------------------------|
+```yaml
+# In devflow/devflow.config
+gate_mode: strict  # strict | standard | permissive
+
+# strict (DEFAULT - RECOMMENDED):
+#   - BLOCKs are FINAL - cannot proceed
+#   - CONCERNs require acknowledgment
+#   - All checks run, no shortcuts
+
+# standard:
+#   - BLOCKs require written rationale to override
+#   - Overrides are logged with timestamp and rationale
+#   - Audit trail maintained
+
+# permissive (NOT RECOMMENDED):
+#   - BLOCKs downgraded to CONCERNs
+#   - Advisory only
+#   - Use only for prototyping
+```
+
+## Verdict Levels
+
+| Level | Meaning | Action Required |
+|-------|---------|-----------------|
+| **PASS** | All checks satisfied | Proceed to next step |
+| **CONCERN** | Minor issues, non-blocking | Acknowledge and proceed, or fix |
+| **BLOCK** | Critical issues | MUST fix before proceeding |
+
+## Subject Artifacts Matrix
+
+| Gate | Required Artifact | Upstream Artifacts |
+|------|-------------------|-------------------|
 | `prd` | `devflow/prds/<name>.md` | — |
-| `spec` | `devflow/specs/<name>.md` | `devflow/prds/<name>.md` |
-| `plan` | `devflow/specs/<name>-plan.md` | `devflow/specs/<name>.md`, `devflow/prds/<name>.md` |
-| `epic` | `devflow/epics/<name>/epic.md` + task files | `devflow/specs/<name>-plan.md`, `devflow/specs/<name>.md` |
-| `bootstrap` | Project directory (from plan) | `devflow/specs/<name>-plan.md` |
-| `task` | Individual task file | Task's `traces_to` FR-xxx in spec |
-| `build` | All task files in epic | `devflow/specs/<name>.md`, `devflow/specs/<name>-plan.md` |
-| `test` | Test results output | `devflow/specs/<name>.md` (coverage requirements) |
+| `spec` | `devflow/specs/<name>.md` | PRD |
+| `plan` | `devflow/specs/<name>-plan.md` | Spec, PRD |
+| `epic` | `devflow/epics/<name>/epic.md` + tasks | Plan, Spec |
+| `bootstrap` | Project directory | Plan |
+| `task` | Individual task file | Task's FR-xxx, Spec |
+| `phase` | Phase tasks + test results | Spec (user stories), ADRs |
+| `build` | All task files in epic | Spec, Plan |
+| `test` | Test results + coverage | Spec (acceptance criteria) |
 | `quality` | Lint/security output | — |
-| `review` | PR checklist | All upstream artifacts |
+| `review` | PR checklist | All upstream |
 
-## Instructions
+## Gate: PRD
 
-### Step 1: Read Subject + Upstream Artifacts
+**Checks (ALL must pass for PASS verdict):**
 
-Read the subject artifact and all upstream artifacts listed in the table above. Build a mental model of what the artifact should contain based on its upstream inputs.
+| Check | PASS | CONCERN | BLOCK |
+|-------|------|---------|-------|
+| Problem statement | Specific, measurable impact | Somewhat vague | Missing or generic |
+| Users/personas | Named roles with specific needs | Generic "users" | Missing |
+| Out-of-scope | 3+ specific exclusions | 1-2 items | Empty |
+| Constraints | Tech, time, team identified | Partial list | Missing |
+| Value proposition | Falsifiable hypothesis | Vague benefit | Missing |
+| Success criteria | Quantified metrics | Qualitative only | Missing |
 
-### Step 2: Run Gate-Specific Checks
+**Execution:**
+```
+1. Read devflow/prds/<name>.md
+2. For each check:
+   - Extract relevant section
+   - Evaluate against criteria
+   - Record verdict with evidence (quote text)
+3. Calculate overall verdict
+```
 
-Execute the checks defined in `devflow/rules/elite-dev-protocol.md` for the given gate name. For each check:
-- Evaluate against the actual artifact content
-- Classify as PASS, CONCERN, or BLOCK
-- Record specific evidence (quote the problematic text, cite the missing item)
+**Output:**
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🚦 GATE: PRD — <name>
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-#### gate:prd
-1. Read `devflow/prds/<name>.md`
-2. Check: Problem statement specificity — is it concrete or vague?
-3. Check: Users/personas — are they named roles with real needs, or generic "users"?
-4. Check: Out-of-scope — does it have real items (not empty)?
-5. Check: Constraints — are they honest (tech, time, team)?
-6. Check: Value proposition — is it falsifiable?
+Check Results:
+  ✓ Problem Statement: PASS
+    "Reduce checkout abandonment by 40%"
 
-#### gate:spec
-1. Read `devflow/specs/<name>.md` and `devflow/prds/<name>.md`
-2. Check: Every PRD feature has at least one US-xxx
-3. Check: Acceptance criteria are testable (no vague adjectives without thresholds)
-4. Check: Priority distribution — not everything is P1
-5. Check: Key entities match PRD entities
-6. Check: FR-xxx requirements link to US-xxx stories
+  ⚠ Users/Personas: CONCERN
+    Found: "users" (generic)
+    Needed: Named roles (e.g., "Returning customers")
 
-#### gate:plan
-1. Read `devflow/specs/<name>-plan.md`, `devflow/specs/<name>.md`, `devflow/prds/<name>.md`
-2. Check: Every FR-xxx from spec is addressed in a plan section
-3. Check: Architecture decisions have rationale
-4. Check: Data model covers all spec entities
-5. Check: Risk assessment is non-empty and honest
-6. Check: Project structure matches stack decisions
+  ✓ Out-of-Scope: PASS
+    5 items listed
 
-#### gate:epic
-1. Read `devflow/epics/<name>/epic.md`, all task files, and the plan
-2. Check: Every plan section maps to at least one task
-3. Check: Tasks have `traces_to:` fields
-4. Check: Dependency graph is a DAG (detect cycles)
-5. Check: Parallel tasks don't share files (check `Files Affected` sections)
-6. Check: No orphaned plan sections
+  ✗ Constraints: BLOCK
+    Missing: Technology constraints
+    Missing: Timeline constraints
 
-#### gate:bootstrap
-1. Run: `cd <project-dir> && python -m pytest --co -q 2>&1 | tail -5` (test discovery)
-2. Run: Server start check (e.g., `python -c "from app.main import app; print('OK')"`)
-3. Run: Database connection check (if applicable)
-4. Check: Directory structure matches plan
-5. Check: `.env.example` exists with documented variables
+  ✓ Value Proposition: PASS
+    Falsifiable: "Save 2 hours/week per user"
 
-#### gate:task
-1. Read the task file and its `traces_to:` FR-xxx requirements from spec
-2. Check: Each acceptance criterion has evidence of completion
-3. Check: Tests exist in the expected location and pass
-4. Check: Code follows existing patterns (compare with neighboring files)
-5. Check: No orphan TODOs without linked issues
+  ✓ Success Criteria: PASS
+    Quantified: "80% completion rate"
 
-#### gate:build
-1. Read all task files in the epic — verify all are complete
-2. Run: Full test suite (`pytest` or equivalent)
-3. Check: No import errors or missing modules across task boundaries
-4. Check: API contracts between tasks are consistent
+Overall: ❌ BLOCK (1 blocking issue)
 
-#### gate:test
-1. Read test results and coverage report
-2. Check: Coverage >= 80% on new code
-3. Check: Zero failures
-4. Check: No tests marked as `skip` without explanation
+Blocking Issues:
+  1. Constraints section incomplete
+     Action: Add technology and timeline constraints
 
-#### gate:quality
-1. Read lint and security check output
-2. Check: Zero lint errors
-3. Check: Zero high/critical security findings
-4. Check: No secrets detected in codebase
+Concerns:
+  1. User personas too generic
+     Action: Replace "users" with named roles
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
 
-#### gate:review
-1. Read PR checklist
-2. Check: All items addressed or marked N/A with reason
-3. Check: No unresolved comments
-4. Check: Breaking changes documented (if any)
+## Gate: Spec
 
-### Step 3: Pre-Mortem
+**Checks:**
 
-Generate 3-5 failure scenarios specific to this gate and artifact. For each:
-- Describe what could go wrong
-- Assess impact (HIGH / MEDIUM / LOW)
-- Classify as Mitigated (artifact addresses it) or Unmitigated
+| Check | PASS | CONCERN | BLOCK |
+|-------|------|---------|-------|
+| PRD → US coverage | Every PRD feature has US-xxx | 90%+ coverage | <90% coverage |
+| Acceptance criteria | All Given/When/Then testable | Some vague | Missing or untestable |
+| Priority distribution | P1≤30%, P2≤50%, P3≥20% | Slightly skewed | All P1 or no P3 |
+| Entity coverage | All PRD entities in spec | Minor gaps | Major entities missing |
+| FR traceability | All FR link to US | Some orphans | Many orphans |
 
-Unmitigated + HIGH impact = escalate to BLOCK.
+**Traceability Verification:**
 
-### Step 4: Traceability Check
+```
+PRD Features → Spec User Stories
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Feature: User Authentication
+  ✓ US-001: User can register
+  ✓ US-002: User can login
+  ✓ US-003: User can logout
+  ✓ US-004: User can reset password
+  Coverage: 4/4 (100%)
 
-**Forward coverage**: For each upstream requirement, verify it has a downstream artifact.
-**Backward coverage**: For each artifact element, verify it traces to an upstream requirement.
+Feature: Dashboard
+  ✓ US-005: User sees dashboard
+  ✗ MISSING: Dashboard customization (from PRD)
+  Coverage: 1/2 (50%) — BLOCK
 
-Calculate coverage percentages. Forward orphans = BLOCK. Backward orphans = CONCERN.
+Total Coverage: 5/6 (83%) — BLOCK (requires 100%)
+```
 
-### Step 5: Render Verdict
+## Gate: Plan
 
-Aggregate all check results:
-- Any BLOCK-level issue → overall verdict is **BLOCK**
-- No BLOCKs but CONCERNs exist → overall verdict is **CONCERN**
-- All checks pass → overall verdict is **PASS**
+**Checks:**
 
-Apply `gate_mode`:
-- `strict`: BLOCKs are final. Cannot proceed.
-- `standard`: BLOCKs require written rationale to override. Ask user for rationale. Log it.
-- `permissive`: BLOCKs downgraded to CONCERNs. All advisory.
+| Check | PASS | CONCERN | BLOCK |
+|-------|------|---------|-------|
+| FR coverage | Every FR-xxx addressed in plan | 95%+ | <95% |
+| Architecture rationale | All decisions have "why" | Some lack detail | No rationale |
+| Entity coverage | All spec entities in data model | Minor gaps | Major missing |
+| ADR generation | Key decisions documented as ADRs | Few ADRs | No ADRs |
+| Risk assessment | 5+ risks with mitigations | 3-4 risks | <3 risks |
+| Stack compliance | Follows project defaults | Minor deviations | Major deviation |
 
-Print the gate report using the format from `devflow/templates/gate/gate-report-template.md`.
+**FR → Plan Section Mapping:**
+```
+FR-001: User registration → Plan: Auth Module ✓
+FR-002: Email verification → Plan: Email Service ✓
+FR-003: Dashboard display → Plan: Dashboard Module ✓
+FR-004: Data export → MISSING — BLOCK
+```
 
-### Step 6: Log Result
+## Gate: Epic
 
-Append the gate result to the subject artifact's frontmatter under the `gates:` key:
+**Checks:**
 
+| Check | PASS | CONCERN | BLOCK |
+|-------|------|---------|-------|
+| Plan coverage | Every plan section has task(s) | 95%+ | <95% |
+| traces_to present | All tasks have traces_to | 90%+ | <90% |
+| Dependency DAG | No cycles | — | Cycles detected |
+| File conflicts | Parallel tasks don't share files | Minor overlap | Major conflicts |
+| Phase structure | Full-stack phases | Some incomplete | Layer-only phases |
+| Test tasks | Each feature has test tasks | Missing some | No test tasks |
+
+**Dependency Graph Validation:**
+```bash
+# Detect cycles
+# For each task, follow depends_on chain
+# If we return to starting task → CYCLE → BLOCK
+```
+
+**Full-Stack Phase Validation:**
+```
+Phase 1: Authentication
+  ✓ DB tasks: 001, 002 (users, sessions)
+  ✓ API tasks: 003, 004 (endpoints)
+  ✓ UI tasks: 005, 006 (pages)
+  ✓ Test tasks: 007 (e2e)
+  Status: FULL-STACK ✓
+
+Phase 2: Dashboard
+  ✓ DB tasks: 008 (widgets)
+  ✓ API tasks: 009, 010
+  ✗ UI tasks: MISSING — BLOCK
+  ✗ Test tasks: MISSING — BLOCK
+  Status: INCOMPLETE — BLOCK
+```
+
+## Gate: Phase (NEW — CRITICAL)
+
+**Runs after each development phase. MANDATORY before proceeding to next phase.**
+
+**Checks:**
+
+| Check | PASS | CONCERN | BLOCK |
+|-------|------|---------|-------|
+| All tasks complete | 100% | 95%+ | <95% |
+| Unit tests | 100% pass, 80%+ coverage | 70-80% coverage | <70% or failures |
+| Integration tests | 100% pass | — | Any failure |
+| E2E tests | 100% pass | — | Any failure |
+| Regression | 100% previous pass | — | Any regression |
+| ADR compliance | 100% | — | Any violation |
+| User verification | Confirmed | — | Not verified |
+
+**User Story Acceptance Verification:**
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 USER STORY VERIFICATION: Phase 1
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+US-001: User can register
+  AC-1: Given new user, When submit valid form → account created
+        Test: test_register_success ✓ PASS
+
+  AC-2: Given invalid email, When submit → error shown
+        Test: test_register_invalid_email ✓ PASS
+
+  AC-3: Given existing email, When submit → duplicate error
+        Test: test_register_duplicate ✓ PASS
+
+  Status: 3/3 acceptance criteria verified ✓
+
+US-002: User can login
+  AC-1: Given valid creds, When login → dashboard shown
+        Test: test_login_success ✓ PASS
+
+  AC-2: Given invalid creds, When login → error shown
+        Test: test_login_invalid ✓ PASS
+
+  AC-3: Given locked account, When login → locked message
+        Test: MISSING — BLOCK
+
+  Status: 2/3 acceptance criteria verified — BLOCK
+
+Phase Status: ❌ BLOCK
+  Missing test for US-002 AC-3 (locked account scenario)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+**Test Results Validation:**
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🧪 TEST RESULTS: Phase 1
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Unit Tests:
+  Collected: 45
+  Passed: 45
+  Failed: 0
+  Coverage: 87%
+  Status: ✓ PASS
+
+Integration Tests:
+  Collected: 12
+  Passed: 12
+  Failed: 0
+  Status: ✓ PASS
+
+E2E Tests:
+  Collected: 8
+  Passed: 7
+  Failed: 1
+  Status: ❌ BLOCK
+
+  Failed test: test_logout_clears_session
+  Error: AssertionError: Session still active after logout
+
+Regression Tests:
+  Previous phases: N/A (first phase)
+  Status: ✓ PASS
+
+Overall: ❌ BLOCK (1 E2E test failure)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+## Gate: Test
+
+**Checks:**
+
+| Check | PASS | CONCERN | BLOCK |
+|-------|------|---------|-------|
+| Unit test pass rate | 100% | — | <100% |
+| Integration pass rate | 100% | — | <100% |
+| E2E pass rate | 100% | — | <100% |
+| Coverage overall | ≥80% | 70-80% | <70% |
+| US coverage | 100% AC tested | 90%+ | <90% |
+| Skipped tests | 0 without reason | <5 with reason | >5 or no reason |
+| Flaky tests | 0 | — | Any flaky |
+
+## Gate: Quality
+
+**Checks:**
+
+| Check | PASS | CONCERN | BLOCK |
+|-------|------|---------|-------|
+| Lint errors | 0 | <10 | ≥10 |
+| Type errors | 0 | — | Any |
+| Security: High | 0 | — | Any |
+| Security: Medium | 0 | <5 | ≥5 |
+| Secrets detected | 0 | — | Any |
+
+## Gate: Review
+
+**Checks:**
+
+| Check | PASS | CONCERN | BLOCK |
+|-------|------|---------|-------|
+| Checklist items | All addressed | <3 outstanding | ≥3 outstanding |
+| ADR compliance | Verified | — | Violations |
+| Breaking changes | Documented | Partial | Undocumented |
+| Unresolved comments | 0 | — | Any |
+
+## Execution Flow
+
+### Step 1: Load Artifacts
+
+```python
+# Pseudocode
+subject = read_artifact(gate_type, feature_name)
+upstream = load_upstream_artifacts(gate_type, feature_name)
+adrs = load_all_adrs("devflow/adrs/")
+```
+
+### Step 2: Run Checks
+
+```python
+results = []
+for check in GATE_CHECKS[gate_type]:
+    result = run_check(check, subject, upstream, adrs)
+    results.append(result)
+```
+
+### Step 3: Traceability Verification
+
+```python
+# Forward: upstream → downstream
+forward_coverage = verify_forward_coverage(upstream, subject)
+
+# Backward: downstream → upstream
+backward_coverage = verify_backward_coverage(subject, upstream)
+
+# Forward orphans = BLOCK
+# Backward orphans = CONCERN
+```
+
+### Step 4: Pre-Mortem Analysis
+
+Generate 3-5 failure scenarios:
+```
+1. What if [scenario]?
+   Impact: HIGH/MEDIUM/LOW
+   Status: Mitigated/Unmitigated
+
+2. What if [scenario]?
+   ...
+```
+
+Unmitigated + HIGH = escalate to BLOCK.
+
+### Step 5: Determine Verdict
+
+```python
+if any(result.level == BLOCK):
+    verdict = BLOCK
+elif any(result.level == CONCERN):
+    verdict = CONCERN
+else:
+    verdict = PASS
+```
+
+### Step 6: Apply Gate Mode
+
+```python
+if gate_mode == "strict":
+    if verdict == BLOCK:
+        print("BLOCKED - Cannot proceed. Fix all issues.")
+        return STOP
+
+elif gate_mode == "standard":
+    if verdict == BLOCK:
+        rationale = ask_user("Provide rationale to override:")
+        if rationale:
+            log_override(rationale, timestamp)
+            verdict = CONCERN  # Downgrade
+        else:
+            return STOP
+
+elif gate_mode == "permissive":
+    if verdict == BLOCK:
+        verdict = CONCERN  # Advisory only
+```
+
+### Step 7: Log Result
+
+Update artifact frontmatter:
 ```yaml
 gates:
   - gate: <gate-name>
     verdict: <PASS|CONCERN|BLOCK>
     timestamp: <ISO 8601 UTC>
+    mode: <strict|standard|permissive>
+    checks:
+      - name: <check-name>
+        result: <PASS|CONCERN|BLOCK>
+        evidence: "<quote or metric>"
     concerns:
       - "<concern text>"
     blocks:
       - "<block text>"
-    override_rationale: "<rationale if BLOCK overridden in standard mode>"
+    override_rationale: "<if applicable>"
 ```
 
-Get the real timestamp via `date -u +"%Y-%m-%dT%H:%M:%SZ"`.
+### Step 8: Output Report
 
-If the artifact doesn't have a `gates:` key yet, add it to the frontmatter.
+Use the format from `devflow/templates/gate/gate-report-template.md`.
 
 ## Error Recovery
 
-- If the subject artifact doesn't exist, print which file is missing and stop.
-- If upstream artifacts are missing, note the gap (this itself may be a BLOCK for traceability).
-- If a runtime check fails (e.g., server won't start for gate:bootstrap), capture the error output and include it in the BLOCK details.
+- **Artifact missing:** Print which file is missing and STOP.
+- **Upstream missing:** Note gap (this is likely a BLOCK for traceability).
+- **Runtime check fails:** Capture error output, include in BLOCK details.
+- **Gate mode not set:** Default to `strict`.
+- **Repeated failures:** After 3 attempts, suggest `/pm:validate` to check system integrity.
