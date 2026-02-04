@@ -436,21 +436,65 @@ ng test --code-coverage
 
 If tests fail: STOP. Fix. Re-run. DO NOT PROCEED.
 
-#### Step 3.5: User Story E2E Tests — MANDATORY
+#### Step 3.5: Phase Test Suite — ALL TEST TYPES (MANDATORY)
+
+**Run ALL test types for this phase. Every test must pass before proceeding.**
 
 **FIRST: Load Required Artifacts**
-
-Before writing any E2E tests, read:
-1. `devflow/specs/<name>.md` — User Stories section (US-xxx with Given/When/Then)
+1. `devflow/specs/<name>.md` — User Stories (US-xxx with Given/When/Then)
 2. `devflow/epics/<name>/epic.md` — Which US-xxx belong to this phase
 3. `devflow/prds/<name>.md` — Original user needs (for context)
 
+---
+
+**STEP 3.5.1: UNIT TESTS**
+
+Run all unit tests for code written in this phase:
+
+```bash
+# Backend unit tests
+pytest tests/unit/ -v --tb=short -k "phase_{N}" --cov=app --cov-report=term
+
+# Frontend unit tests (if applicable)
+npm test -- --coverage --testPathPattern="phase-{N}"
+```
+
+**Unit Test Requirements:**
+- Every new function/method must have unit tests
+- Coverage >= 80% on new code
+- Test edge cases, error conditions, boundary values
+
+---
+
+**STEP 3.5.2: INTEGRATION TESTS**
+
+Run integration tests for this phase's features:
+
+```bash
+pytest tests/integration/ -v --tb=short -k "phase_{N}"
+```
+
+**Integration Test Requirements:**
+- Every API endpoint must have integration tests
+- Test DB operations with real database
+- Test service layer with real dependencies
+- Test authentication/authorization flows
+
+---
+
+**STEP 3.5.3: E2E TESTS**
+
 **For EACH user story in this phase, create E2E tests for ALL acceptance criteria.**
+
+```bash
+pytest tests/e2e/ -v --tb=short -k "phase_{N}"
+```
 
 **E2E Test Requirements:**
 - Each US-xxx must have at least one test per acceptance criterion
 - Tests must validate the Given/When/Then exactly as written in spec
 - Happy path AND error paths must be tested
+- Test complete user flows from UI to database
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -476,6 +520,36 @@ pytest tests/e2e/test_phase_{N}*.py -v --tb=short
 ```
 
 If any test fails: STOP. Fix. Re-run. DO NOT PROCEED.
+
+---
+
+**PHASE TEST SUMMARY**
+
+After all test types pass, display summary:
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🧪 PHASE {N} TEST SUMMARY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+UNIT TESTS:
+  Backend:  {N}/{N} passed ✓
+  Frontend: {N}/{N} passed ✓
+  Coverage: {X}%
+
+INTEGRATION TESTS:
+  API endpoints: {N}/{N} passed ✓
+  DB operations: {N}/{N} passed ✓
+  Auth flows:    {N}/{N} passed ✓
+
+E2E TESTS:
+  US-001: {N}/{N} acceptance criteria ✓
+  US-002: {N}/{N} acceptance criteria ✓
+  Total:  {N}/{N} user stories verified ✓
+
+Phase {N} Tests: ALL PASSED ✓
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
 
 #### Step 3.6: Regression Suite — MANDATORY
 
