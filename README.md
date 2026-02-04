@@ -1,186 +1,139 @@
-# Product-dev-system
+# DevFlow by AI LENS
 
-End-to-end product development system for Claude Code by AI LENS.
+End-to-end product development system for Claude Code.
 
-## What is it?
+## What It Does
 
-A command/agent system that orchestrates the full product development lifecycle using Claude Code. Structured commands for every phase — from brainstorming requirements to shipping code.
+Orchestrates the full product lifecycle — from brainstorming to shipping — using structured commands and AI agents.
 
 ```
-Phase A: Brainstorming (Human + AI)          Phase B: Execution (Agents)
-PRD → Spec → Plan → Tasks                →   Build → Test → Review → Ship
+Brainstorming (Human + AI)              Execution (Agents)
+─────────────────────────────────────────────────────────────
+PRD → Spec → Plan → Design → Tasks  →  Build → Test → Ship
+         ↓                                    ↓
+    Quality Gates                      Mandatory Testing
 ```
 
-## Installation
+## Quick Start
 
 ```bash
 # 1. Clone this repo
 git clone https://github.com/AI-LENS/Product-dev-system.git
 
-# 2. Go to your project and run the installer
+# 2. Go to your project and run installer
 cd /path/to/your-project
 bash /path/to/Product-dev-system/install/devflow.sh
 
 # 3. Initialize in Claude Code
 /devflow:init
-```
 
-**Windows:**
-```cmd
-git clone https://github.com/AI-LENS/Product-dev-system.git
-cd C:\path\to\your-project
-C:\path\to\Product-dev-system\install\devflow.bat
-```
-
-**What the installer does:**
-- Checks prerequisites (Git, GitHub CLI, Python)
-- Creates `.claude/` folder in your project
-- Copies commands, rules, agents, scripts, templates
-
-**To update:** Pull latest and re-run the installer.
-
-## Prerequisites
-
-| Tool | Required | Install |
-|------|----------|---------|
-| Git | Yes | [git-scm.com](https://git-scm.com/) |
-| GitHub CLI (`gh`) | Yes | [cli.github.com](https://cli.github.com/) |
-| Python 3.10+ | Yes | [python.org](https://www.python.org/) |
-| Claude Code | Yes | [claude.ai/code](https://claude.ai/code) |
-
-## Quick Start
-
-```bash
-# Run the full brainstorming phase
+# 4. Start building
 /devflow:kickstart my-app
-
-# Or run steps individually
-/devflow:init
-/pm:prd-new my-feature
-/pm:spec-create my-feature
-/pm:plan my-feature
-/pm:epic-decompose my-feature
 ```
-
-## Tech Stack (Defaults)
-
-| Layer | Technology |
-|-------|-----------|
-| Frontend | Angular 19+ (latest) + DaisyUI + Tailwind (or React) |
-| Backend | Python + FastAPI |
-| Database | PostgreSQL + SQLAlchemy + Alembic |
-| AI | Multi-provider (Anthropic/OpenAI) |
-
-**Angular 19+ features:** Standalone components, Signals, new control flow (@if, @for), deferrable views (@defer).
 
 ## Two Phases
 
 ### Phase A: Brainstorming
 
-| Step | Command | Output |
-|------|---------|--------|
-| Setup | `/devflow:init` | Config, dirs |
-| PRD | `/pm:prd-new <name>` | Product requirements |
-| Spec | `/pm:spec-create <name>` | Detailed spec |
-| Plan | `/pm:plan <name>` | Technical plan |
-| Tasks | `/pm:epic-decompose <name>` | Work items |
-| Sync | `/pm:epic-sync <name>` | GitHub issues |
+```bash
+/devflow:kickstart my-app
+```
 
-Or run all at once: `/devflow:kickstart <name>`
+This runs:
+1. **PRD** — Define problem, users, features (with probe questions)
+2. **Spec** — User stories with Given/When/Then acceptance criteria
+3. **Plan** — Architecture, data model, API design
+4. **ADRs** — Record architectural decisions
+5. **Design** — UI tokens, shell, screen specs (if applicable)
+6. **Tasks** — Break into parallelizable work items
 
-**Resumable:** If interrupted, run the same command again - it skips completed steps.
+Each step has a **quality gate** that must pass before proceeding.
 
 ### Phase B: Execution
 
-| Step | Command | What happens |
-|------|---------|-------------|
-| Bootstrap | `/init:project` | Scaffold project |
-| Local Deploy | automatic | Start local servers |
-| Build | `/pm:epic-start <name>` | Parallel agents |
-| **Verify** | interactive | Check each feature locally |
-| Test | `/testing:run` | Run tests |
-| Quality | `/quality:security-check` | Security audit |
-| **Docs** | Mintlify | Beginner-friendly docs |
-| Review | `/review:pr-checklist` | PR review |
-| Ship | `/deploy:setup` | Local + prod deployment |
+```bash
+/devflow:execute my-app
+```
 
-Or run all at once: `/devflow:execute <name>`
+This runs:
+1. **Bootstrap** — Scaffold project (product scope)
+2. **Build** — Phase by phase, full-stack (DB + API + UI per feature)
+3. **Test** — Unit, integration, E2E, regression after each phase
+4. **Quality** — Lint, security, ADR compliance
+5. **Docs** — Mintlify documentation
+6. **Ship** — CI/CD, Docker, deployment
 
-**Elite workflow:** Build → Test → Deploy locally → Verify → Repeat
+**Key principle:** Each phase is a complete feature (not just DB, then all API, then all UI). This enables end-to-end testing per phase.
 
-**Phased development:** Large apps broken into feature phases (not layers). Each phase = complete feature (DB + API + UI) that can be tested end-to-end.
+## Testing Requirements
 
-**Continuous testing:** Tests run after each task, each feature, and at phase gates.
+Every phase must pass before proceeding:
 
-**Resumable:** If interrupted, run the same command again - it checks task status and continues.
+| Test Type | When | Threshold |
+|-----------|------|-----------|
+| Unit | After each task | 80% coverage |
+| Integration | After each feature | All endpoints |
+| E2E | After each phase | All acceptance criteria |
+| Regression | After each phase | 100% previous tests pass |
 
-## Agents
+## Tech Stack (Defaults)
 
-| Agent | Purpose |
-|-------|---------|
-| `parallel-worker` | Coordinates parallel work |
-| `code-analyzer` | Code analysis, bug hunting |
-| `test-runner` | Test execution |
-| `db-task-worker` | Database operations |
-| `api-task-worker` | API endpoints |
-| `ui-task-worker` | Frontend components |
-| `ai-task-worker` | AI/LLM integration |
+| Layer | Technology |
+|-------|-----------|
+| Frontend | Angular 19+ / React + Tailwind + DaisyUI |
+| Backend | Python + FastAPI |
+| Database | PostgreSQL + SQLAlchemy + Alembic |
+| Auth | JWT with refresh tokens |
 
 ## Directory Structure
 
-After installation, your project gets:
+After installation:
 
 ```
-.claude/              # System files
-├── commands/         # Slash commands
-├── rules/            # Coding standards
-├── agents/           # AI agents
-├── scripts/          # Bash helpers
-└── templates/        # Doc templates
-
-devflow/              # Your artifacts
-├── prds/             # Product requirements
-├── specs/            # Specifications
-├── epics/            # Tasks
-├── context/          # Codebase context
-└── adrs/             # Architecture decisions
+your-project/
+├── .claude/              # System (commands, rules, agents)
+│   ├── commands/         # Slash commands
+│   ├── rules/            # Coding standards
+│   ├── agents/           # AI agents
+│   └── templates/        # Doc templates
+│
+└── devflow/              # Your artifacts
+    ├── prds/             # Product requirements
+    ├── specs/            # Specifications + plans
+    ├── epics/            # Tasks
+    ├── adrs/             # Architecture decisions
+    ├── design/           # UI specs (tokens, shell, sections)
+    └── context/          # Codebase context
 ```
 
-## ADRs (Architecture Decision Records)
+## Key Commands
 
-ADRs capture why architectural decisions were made. They're used throughout the system:
+| Command | Purpose |
+|---------|---------|
+| `/devflow:kickstart <name>` | Run full brainstorming phase |
+| `/devflow:execute <name>` | Run full execution phase |
+| `/pm:status` | Check project progress |
+| `/arch:adr-new "decision"` | Create architecture decision |
+| `/context:prime` | Reload context after interruption |
 
-| Where | How ADRs are used |
-|-------|-------------------|
-| **Planning** | Check new decisions don't conflict with existing ADRs |
-| **Code Review** | Verify implementation follows ADRs |
-| **Gates** | ADR compliance check before passing |
-| **Documentation** | Auto-included in Mintlify docs |
-| **Onboarding** | New devs read ADRs to understand "why" |
+## Resumable
 
-**Commands:**
-- `/arch:adr-new "decision"` — Create new ADR
-- `/arch:adr-list` — List all ADRs
-
-## Recovering from Context Clear
-
-If Claude Code asks to clear/compact and you lose context:
+Both phases are resumable. If interrupted:
 
 ```bash
-# 1. Reload project context
-/context:prime
-
-# 2. Resume your work
-/devflow:kickstart <name>   # or
-/devflow:execute <name>
+# Just run the same command again
+/devflow:kickstart my-app   # Skips completed steps
+/devflow:execute my-app     # Continues from last phase
 ```
 
-Both commands detect existing artifacts and continue from where you left off.
+## Prerequisites
 
-**Tips to avoid context issues:**
-- Run `/context:update` at the end of each session
-- Use specific commands (`/pm:prd-new`) instead of long kickstart runs
-- Check `/pm:status` to see current progress before resuming
+| Tool | Required |
+|------|----------|
+| Git | Yes |
+| GitHub CLI (`gh`) | Yes |
+| Python 3.10+ | Yes |
+| Claude Code | Yes |
 
 ## License
 
