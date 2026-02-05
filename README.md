@@ -65,14 +65,28 @@ This runs:
 
 **Key principle:** Each phase is a complete feature (not just DB, then all API, then all UI). This enables end-to-end testing per phase.
 
+## TDD (Test-Driven Development)
+
+All code follows **Red-Green-Refactor**:
+
+```
+1. RED    → Write failing test first
+2. GREEN  → Write minimal code to pass
+3. REFACTOR → Clean up, stay green
+→ Repeat
+```
+
+**Speed is not important. Robustness is.**
+
 ## Testing Requirements
 
 Every phase must pass before proceeding:
 
 | Test Type | When | Threshold |
 |-----------|------|-----------|
-| Unit | After each task | 80% coverage |
+| Unit | After each model/endpoint/component (TDD) | 80% coverage |
 | Integration | After each feature | All endpoints |
+| Contract | After UI layer | Frontend ↔ Backend match |
 | E2E | After each phase | All acceptance criteria |
 | Regression | After each phase | 100% previous tests pass |
 
@@ -137,7 +151,9 @@ Both phases are resumable. If interrupted:
 
 ## Acknowledgments
 
-Shoutout to [DesignOS](https://github.com/designos) and [SpecKit](https://github.com/speckit) for the inspiration and some components that influenced this project.
+Inspired by:
+- [design-os](https://github.com/buildermethods/design-os) — Design phase principles
+- [spec-kit](https://github.com/github/spec-kit) — Specification patterns
 
 ## License
 
