@@ -215,16 +215,199 @@ Task(subagent_type="general-purpose", prompt="Implement DB schema for sessions..
 Task(subagent_type="general-purpose", prompt="Set up CI pipeline...")
 ```
 
-## Test Requirements Matrix
+## Test Requirements Matrix — ALL TESTS ARE MANDATORY
+
+**⛔ CRITICAL: Every test type below is MANDATORY. No skipping. No exceptions.**
+
+### Core Test Types (BLOCKING)
 
 | Test Type | When Run | Coverage Required | Failure Action |
 |-----------|----------|-------------------|----------------|
-| Unit | After each task | 80% of new code | BLOCK - fix before proceeding |
-| Integration | After each feature | All API endpoints | BLOCK - fix before proceeding |
-| Regression | After each phase | 100% previous tests pass | BLOCK - cannot proceed |
-| E2E | After each phase | All US-xxx acceptance criteria | BLOCK - cannot proceed |
-| Performance | Before ship | NFR thresholds met | CONCERN - user decides |
-| Security | Before ship | No high/critical findings | BLOCK - must fix |
+| **Unit Tests** | After EVERY file/function created | 80% of new code minimum | ⛔ BLOCK - fix before proceeding |
+| **Integration Tests** | After each feature | All API endpoints | ⛔ BLOCK - fix before proceeding |
+| **Regression Tests** | After each phase | 100% previous tests pass | ⛔ BLOCK - cannot proceed |
+| **E2E Tests** | After each phase | All US-xxx acceptance criteria | ⛔ BLOCK - cannot proceed |
+
+### Contract & Schema Tests (BLOCKING)
+
+| Test Type | Purpose | When Run | Failure Action |
+|-----------|---------|----------|----------------|
+| **Contract Tests** | Frontend request format vs Backend schema | After API + UI layers complete | ⛔ BLOCK - fix before proceeding |
+| **OpenAPI Validation** | Frontend API calls match OpenAPI spec | After API layer | ⛔ BLOCK - fix before proceeding |
+| **Schema Sync Tests** | Frontend TypeScript interfaces match Pydantic models | After API + UI layers complete | ⛔ BLOCK - fix before proceeding |
+
+### Quality Tests (BLOCKING)
+
+| Test Type | Purpose | When Run | Failure Action |
+|-----------|---------|----------|----------------|
+| **Security Tests** | No high/critical vulnerabilities | Before ship | ⛔ BLOCK - must fix |
+| **Performance Tests** | NFR thresholds met | Before ship | ⚠️ CONCERN - user decides |
+
+### Unit Test Enforcement — STRICT RULES
+
+**Unit tests are NON-NEGOTIABLE. They MUST be written for EVERY piece of code.**
+
+```
+┌────────────────────────────────────────────────────────────────────────────┐
+│ UNIT TEST REQUIREMENTS — MANDATORY FOR EVERY CODE CHANGE                  │
+├────────────────────────────────────────────────────────────────────────────┤
+│                                                                            │
+│ For EVERY file created or modified:                                        │
+│   ├─ models/*.py          → tests/unit/test_models_*.py                   │
+│   ├─ schemas/*.py         → tests/unit/test_schemas_*.py                  │
+│   ├─ services/*.py        → tests/unit/test_services_*.py                 │
+│   ├─ api/endpoints/*.py   → tests/unit/test_api_*.py                      │
+│   ├─ components/*.ts      → components/*.spec.ts                          │
+│   └─ services/*.ts        → services/*.spec.ts                            │
+│                                                                            │
+│ Minimum Requirements:                                                      │
+│   • 80% code coverage for new code                                         │
+│   • 100% of public functions/methods have tests                            │
+│   • Happy path + at least 2 error cases per function                       │
+│   • Edge cases (null, empty, boundary values)                              │
+│                                                                            │
+│ ⛔ DO NOT PROCEED if unit tests are missing or failing                     │
+│                                                                            │
+└────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Contract & Schema Test Details
+
+```
+┌────────────────────────────────────────────────────────────────────────────┐
+│ CONTRACT TESTS — Frontend ↔ Backend Compatibility                         │
+├────────────────────────────────────────────────────────────────────────────┤
+│                                                                            │
+│ Purpose: Ensure frontend requests match what backend expects               │
+│                                                                            │
+│ Test File: tests/contract/test_frontend_backend_contract.py                │
+│                                                                            │
+│ What to Test:                                                              │
+│   • Request body format matches Pydantic input schema                      │
+│   • Response body format matches Pydantic output schema                    │
+│   • Query parameters match endpoint expectations                           │
+│   • Headers (auth, content-type) are correct                               │
+│   • Error response format is consistent                                    │
+│                                                                            │
+│ How to Run:                                                                │
+│   pytest tests/contract/ -v --tb=short                                     │
+│                                                                            │
+└────────────────────────────────────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────────────────────────────────────┐
+│ OPENAPI VALIDATION — Frontend Calls Match Spec                            │
+├────────────────────────────────────────────────────────────────────────────┤
+│                                                                            │
+│ Purpose: Validate frontend API calls against OpenAPI specification         │
+│                                                                            │
+│ Test File: tests/contract/test_openapi_compliance.py                       │
+│                                                                            │
+│ What to Test:                                                              │
+│   • All frontend API service methods match OpenAPI paths                   │
+│   • Request/response types match OpenAPI schemas                           │
+│   • Required fields are always provided                                    │
+│   • Enum values match OpenAPI definitions                                  │
+│                                                                            │
+│ Tools:                                                                     │
+│   • openapi-spec-validator (Python)                                        │
+│   • Generate TypeScript types from OpenAPI: openapi-typescript             │
+│                                                                            │
+│ How to Run:                                                                │
+│   # Validate OpenAPI spec                                                  │
+│   python -c "from openapi_spec_validator import validate_spec; ..."        │
+│   # Run contract tests                                                     │
+│   pytest tests/contract/test_openapi_compliance.py -v                      │
+│                                                                            │
+└────────────────────────────────────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────────────────────────────────────┐
+│ SCHEMA SYNC TESTS — TypeScript ↔ Pydantic Alignment                       │
+├────────────────────────────────────────────────────────────────────────────┤
+│                                                                            │
+│ Purpose: Ensure frontend TypeScript interfaces match backend Pydantic      │
+│                                                                            │
+│ Test File: tests/contract/test_schema_sync.py                              │
+│                                                                            │
+│ What to Test:                                                              │
+│   • Field names match (camelCase ↔ snake_case conversion)                  │
+│   • Field types are compatible (string ↔ str, number ↔ int/float)          │
+│   • Required/optional fields align                                         │
+│   • Nested object structures match                                         │
+│   • Array/list types match                                                 │
+│                                                                            │
+│ Approach:                                                                  │
+│   1. Generate TypeScript types from Pydantic: pydantic-to-typescript       │
+│   2. Compare generated types with frontend types                           │
+│   3. Or: Parse both and compare programmatically                           │
+│                                                                            │
+│ How to Run:                                                                │
+│   # Generate TS types from Pydantic                                        │
+│   python scripts/generate_ts_types.py                                      │
+│   # Compare with frontend types                                            │
+│   pytest tests/contract/test_schema_sync.py -v                             │
+│                                                                            │
+└────────────────────────────────────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────────────────────────────────────┐
+│ E2E TESTS — Full Stack Integration                                        │
+├────────────────────────────────────────────────────────────────────────────┤
+│                                                                            │
+│ Purpose: Test complete user flows from browser → API → Database            │
+│                                                                            │
+│ Test File: tests/e2e/test_*.py (using Playwright or Cypress)               │
+│                                                                            │
+│ What to Test:                                                              │
+│   • Every user story acceptance criterion                                  │
+│   • Complete user journeys (login → action → verify → logout)              │
+│   • Data persists correctly in database                                    │
+│   • Error handling displays correctly in UI                                │
+│   • Loading states and async operations                                    │
+│                                                                            │
+│ Minimum Requirements:                                                      │
+│   • 1 E2E test per user story                                              │
+│   • 1 E2E test per acceptance criterion                                    │
+│   • Both happy path and error paths                                        │
+│                                                                            │
+│ How to Run:                                                                │
+│   pytest tests/e2e/ -v --tb=short                                          │
+│   # Or with Playwright                                                     │
+│   npx playwright test                                                      │
+│                                                                            │
+└────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Test Execution Order — MANDATORY SEQUENCE
+
+```
+Phase Execution Test Order:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. DB Layer Complete
+   └─ Run: Unit tests for models
+   └─ GATE: All pass? → Continue : STOP
+
+2. API Layer Complete
+   └─ Run: Unit tests for schemas, services, endpoints
+   └─ Run: Integration tests for API
+   └─ Run: OpenAPI validation
+   └─ GATE: All pass? → Continue : STOP
+
+3. UI Layer Complete
+   └─ Run: Unit tests for components
+   └─ Run: Contract tests (frontend ↔ backend)
+   └─ Run: Schema sync tests (TypeScript ↔ Pydantic)
+   └─ GATE: All pass? → Continue : STOP
+
+4. Full Stack Complete
+   └─ Run: E2E tests (all user stories)
+   └─ Run: Regression suite (all previous tests)
+   └─ GATE: All pass? → Continue : STOP
+
+5. Before Ship
+   └─ Run: Security tests
+   └─ Run: Performance tests
+   └─ GATE: All pass? → Ship : STOP
+```
 
 ## Full-Stack Phase Structure — MANDATORY
 
@@ -509,14 +692,38 @@ Before writing any DB code, read:
 - [ ] Follows ADR database decisions
 
 **MANDATORY: DB Layer Tests**
+
 ```bash
-pytest tests/unit/test_models*.py -v --tb=short
+# 1. Unit Tests for Models (MANDATORY)
+pytest tests/unit/test_models*.py -v --tb=short --cov=app/models --cov-report=term-missing
+
+# 2. Migration Tests (MANDATORY)
 pytest tests/integration/test_db*.py -v --tb=short
+
+# 3. Verify coverage meets threshold
+python -c "
+import sys
+coverage = float(sys.argv[1])
+if coverage < 80:
+    print(f'FAIL: Coverage {coverage}% < 80% required')
+    sys.exit(1)
+print(f'PASS: Coverage {coverage}% >= 80%')
+"
 ```
 
-If tests fail: STOP. Fix. Re-run. DO NOT PROCEED.
+**DB Layer Test Checklist:**
+- [ ] Unit tests: Every model class has a test file
+- [ ] Unit tests: All model methods are tested
+- [ ] Unit tests: Relationships are tested (1:N, N:M)
+- [ ] Unit tests: Validation rules are tested
+- [ ] Unit tests: Edge cases tested (null, empty, max length)
+- [ ] Integration tests: Migrations apply cleanly
+- [ ] Integration tests: Seed data loads correctly
+- [ ] Coverage: >= 80% for models
 
-**🚦 CONFIRMATION REQUIRED:** Present DB layer summary (models created, migrations applied, test results), then ask via AskUserQuestion:
+If ANY test fails OR coverage < 80%: STOP. Fix. Re-run. DO NOT PROCEED.
+
+**🚦 CONFIRMATION REQUIRED:** Present DB layer summary (models created, migrations applied, test results, coverage %), then ask via AskUserQuestion:
 - "Yes, DB layer looks good — proceed to Step 3.3: API Layer" (Recommended)
 - "No, there are issues — let me review first"
 - "Stop execution here"
@@ -548,15 +755,38 @@ Before writing any API code, read:
 - [ ] Error responses match plan's error taxonomy
 
 **MANDATORY: API Layer Tests**
+
 ```bash
+# 1. Unit Tests (MANDATORY)
 pytest tests/unit/test_services*.py -v --tb=short
 pytest tests/unit/test_schemas*.py -v --tb=short
+pytest tests/unit/test_api*.py -v --tb=short
+
+# 2. Integration Tests (MANDATORY)
 pytest tests/integration/test_api*.py -v --tb=short
+
+# 3. OpenAPI Validation (MANDATORY)
+python -c "
+from openapi_spec_validator import validate_spec
+import json
+with open('openapi.json') as f:
+    validate_spec(json.load(f))
+print('OpenAPI spec is valid')
+"
+pytest tests/contract/test_openapi_compliance.py -v --tb=short
 ```
 
-If tests fail: STOP. Fix. Re-run. DO NOT PROCEED.
+**API Layer Test Checklist:**
+- [ ] Unit tests: All services have tests
+- [ ] Unit tests: All schemas have tests
+- [ ] Unit tests: All endpoints have tests
+- [ ] Integration tests: All API flows tested
+- [ ] OpenAPI validation: Spec is valid
+- [ ] OpenAPI validation: Endpoints match spec
 
-**🚦 CONFIRMATION REQUIRED:** Present API layer summary (endpoints created, schemas, test results), then ask via AskUserQuestion:
+If ANY test fails: STOP. Fix. Re-run. DO NOT PROCEED.
+
+**🚦 CONFIRMATION REQUIRED:** Present API layer summary (endpoints created, schemas, test results, OpenAPI validation), then ask via AskUserQuestion:
 - "Yes, API layer looks good — proceed to Step 3.4: UI Layer" (Recommended)
 - "No, there are issues — let me review first"
 - "Stop execution here"
@@ -585,26 +815,47 @@ Before writing any UI code, read and apply:
 - [ ] Responsive breakpoints per design
 - [ ] Accessibility (ARIA labels, keyboard nav)
 
-**MANDATORY: UI Tests**
+**MANDATORY: UI Layer Tests**
+
 ```bash
+# 1. Unit Tests (MANDATORY)
 npm test -- --coverage
-# or
+# or for Angular:
 ng test --code-coverage
+
+# 2. Contract Tests - Frontend ↔ Backend (MANDATORY)
+pytest tests/contract/test_frontend_backend_contract.py -v --tb=short
+
+# 3. Schema Sync Tests - TypeScript ↔ Pydantic (MANDATORY)
+# First generate TypeScript types from Pydantic models
+python scripts/generate_ts_types.py
+# Then run sync validation
+pytest tests/contract/test_schema_sync.py -v --tb=short
 ```
 
-If tests fail: STOP. Fix. Re-run. DO NOT PROCEED.
+**UI Layer Test Checklist:**
+- [ ] Unit tests: All components have tests
+- [ ] Unit tests: All services have tests
+- [ ] Unit tests: Coverage >= 80%
+- [ ] Contract tests: Frontend requests match backend schemas
+- [ ] Contract tests: Response handling matches expected format
+- [ ] Schema sync: TypeScript interfaces match Pydantic models
+- [ ] Schema sync: Field names align (camelCase ↔ snake_case)
+- [ ] Schema sync: Required/optional fields match
 
-**🚦 CONFIRMATION REQUIRED:** Present UI layer summary (components created, pages, test results), then ask via AskUserQuestion:
+If ANY test fails: STOP. Fix. Re-run. DO NOT PROCEED.
+
+**🚦 CONFIRMATION REQUIRED:** Present UI layer summary (components created, pages, test results, contract validation, schema sync), then ask via AskUserQuestion:
 - "Yes, UI layer looks good — proceed to Step 3.5: E2E Tests" (Recommended)
 - "No, there are issues — let me review first"
 - "Stop execution here"
 
 **Do NOT proceed to E2E Tests without explicit user approval.**
 
-#### Step 3.5: E2E Tests — USER STORY VALIDATION (MANDATORY)
+#### Step 3.5: E2E Tests — FULL STACK INTEGRATION (MANDATORY)
 
-**Unit and integration tests already passed in Steps 3.2-3.4 (fail-fast).**
-**Now run E2E tests to validate complete user flows.**
+**Unit, integration, and contract tests already passed in Steps 3.2-3.4 (fail-fast).**
+**Now run E2E tests to validate complete user flows: Browser → API → Database.**
 
 **FIRST: Load Required Artifacts**
 1. `devflow/specs/<name>.md` — User Stories (US-xxx with Given/When/Then)
@@ -614,14 +865,51 @@ If tests fail: STOP. Fix. Re-run. DO NOT PROCEED.
 **For EACH user story in this phase, create E2E tests for ALL acceptance criteria.**
 
 ```bash
+# Run E2E tests with Playwright or Pytest
 pytest tests/e2e/ -v --tb=short -k "phase_{N}"
+# Or with Playwright
+npx playwright test tests/e2e/phase_{N}
 ```
 
-**E2E Test Requirements:**
-- Each US-xxx must have at least one test per acceptance criterion
-- Tests must validate the Given/When/Then exactly as written in spec
-- Happy path AND error paths must be tested
-- Test complete user flows from UI to database
+**E2E Test Requirements — FULL STACK INTEGRATION:**
+
+```
+┌────────────────────────────────────────────────────────────────────────────┐
+│ E2E TEST REQUIREMENTS — Browser → API → Database                          │
+├────────────────────────────────────────────────────────────────────────────┤
+│                                                                            │
+│ What E2E Tests MUST Cover:                                                 │
+│   • Complete user journey from UI interaction to DB state change           │
+│   • Every user story acceptance criterion (Given/When/Then)                │
+│   • Happy path: successful flow completion                                 │
+│   • Error paths: validation errors, network errors, permission denied      │
+│   • Edge cases: empty states, boundary values, concurrent actions          │
+│                                                                            │
+│ Full Stack Verification Per Test:                                          │
+│   1. UI Action: Click button, fill form, navigate                          │
+│   2. API Call: Verify correct request sent to backend                      │
+│   3. DB State: Verify data persisted/updated correctly                     │
+│   4. UI Response: Verify correct feedback shown to user                    │
+│                                                                            │
+│ Minimum Requirements:                                                      │
+│   • 1 E2E test per user story                                              │
+│   • 1 test per acceptance criterion                                        │
+│   • At least 2 error path tests per user story                             │
+│   • Database state assertions (not just UI assertions)                     │
+│                                                                            │
+│ ⛔ DO NOT PROCEED if any E2E test is missing or failing                    │
+│                                                                            │
+└────────────────────────────────────────────────────────────────────────────┘
+```
+
+**E2E Test Checklist:**
+- [ ] Every user story has at least one E2E test
+- [ ] Every acceptance criterion is tested
+- [ ] Tests verify database state changes (not just UI)
+- [ ] Tests verify API requests are correct
+- [ ] Error scenarios are tested
+- [ ] Loading states are tested
+- [ ] Tests run against real backend (not mocked)
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -656,21 +944,34 @@ Display cumulative results from all layer steps:
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🧪 PHASE {N} TEST SUMMARY
+🧪 PHASE {N} TEST SUMMARY — ALL TEST TYPES
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-UNIT + INTEGRATION (passed in Steps 3.2-3.4):
+UNIT TESTS (passed in Steps 3.2-3.4):
   DB Layer (Step 3.2):
     - Model tests: {N}/{N} passed ✓
     - Migration tests: {N}/{N} passed ✓
+    - Coverage: {X}% ✓
   API Layer (Step 3.3):
+    - Schema tests: {N}/{N} passed ✓
     - Service tests: {N}/{N} passed ✓
     - Endpoint tests: {N}/{N} passed ✓
+    - Coverage: {X}% ✓
   UI Layer (Step 3.4):
     - Component tests: {N}/{N} passed ✓
-  Coverage: {X}%
+    - Coverage: {X}% ✓
 
-E2E TESTS (passed in Step 3.5):
+INTEGRATION TESTS (passed in Steps 3.2-3.4):
+  - DB integration: {N}/{N} passed ✓
+  - API integration: {N}/{N} passed ✓
+
+CONTRACT & SCHEMA TESTS (passed in Steps 3.3-3.4):
+  - OpenAPI validation: ✓ Spec is valid
+  - OpenAPI compliance: {N}/{N} endpoints match ✓
+  - Contract tests: {N}/{N} passed ✓
+  - Schema sync (TS ↔ Pydantic): {N}/{N} types match ✓
+
+E2E TESTS - FULL STACK (passed in Step 3.5):
   US-001: {N}/{N} acceptance criteria ✓
   US-002: {N}/{N} acceptance criteria ✓
   Total:  {N}/{N} user stories verified ✓
