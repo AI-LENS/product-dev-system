@@ -32,19 +32,179 @@ Generate a complete visual identity system as design tokens for the project.
 
 You are a design systems engineer creating a comprehensive token system for a web application.
 
-### Step 1: Gather Brand Context
+### Step 1: Gather Brand Context — MANDATORY PROBING QUESTIONS
 
-Ask the user:
-- **Brand personality:** Professional, playful, minimal, bold?
-- **Primary color preference:** A hex code or general color (blue, green, etc.)
-- **Industry/domain:** Helps inform appropriate color choices
-- **Existing brand guidelines?** If yes, ask for colors/fonts
+**⛔ BLOCKING REQUIREMENT: You MUST ask ALL questions below using AskUserQuestion.**
 
-If the user wants defaults, use:
+**ENFORCEMENT RULES:**
+1. Do NOT skip any question
+2. Do NOT proceed to Step 2 until ALL questions are answered
+3. Do NOT use defaults unless user EXPLICITLY says "use defaults" or "skip questions"
+4. If user tries to skip, remind them: "These questions are mandatory to ensure the design system matches your needs. Which question would you like to answer first?"
+5. Each round MUST be completed before moving to the next round
+
+#### Round 1: Brand Identity (use AskUserQuestion)
+
+Ask these questions in sequence, waiting for answers:
+
+1. **Brand Personality**
+   - Question: "How would you describe the brand personality?"
+   - Options:
+     - Professional & Corporate (banks, enterprise software)
+     - Friendly & Approachable (consumer apps, social platforms)
+     - Minimal & Clean (productivity tools, portfolios)
+     - Bold & Energetic (gaming, entertainment, startups)
+   - Follow-up if "Professional": "Is it traditional/conservative or modern/innovative?"
+   - Follow-up if "Bold": "Playful-bold or serious-bold?"
+
+2. **Target Audience**
+   - Question: "Who is the primary user of this application?"
+   - Options:
+     - Technical users (developers, engineers, IT)
+     - Business professionals (executives, managers)
+     - General consumers (everyday users)
+     - Creative professionals (designers, artists)
+   - Follow-up: "What age range? What tech savviness level?"
+
+3. **Emotional Response**
+   - Question: "What emotion should users feel when using this app?"
+   - Options:
+     - Trust & Security (healthcare, finance)
+     - Excitement & Energy (entertainment, social)
+     - Calm & Focus (productivity, meditation)
+     - Confidence & Empowerment (business tools)
+
+#### Round 2: Color Preferences (use AskUserQuestion)
+
+4. **Primary Color**
+   - Question: "Do you have a primary brand color in mind?"
+   - Options:
+     - Yes, I have a specific hex code
+     - I prefer a general color family (blue, green, purple, etc.)
+     - No preference, suggest based on industry
+     - Let me see options first
+   - If hex provided: Verify it works in both light/dark themes
+   - If color family: "Cool tones (blue, purple, cyan) or warm tones (red, orange, amber)?"
+
+5. **Color Associations**
+   - Question: "Are there colors you want to AVOID?"
+   - Context: "Some industries have negative associations (e.g., red in finance = loss)"
+   - Free text response accepted
+
+6. **Competitive Differentiation**
+   - Question: "Who are your main competitors, and do you want to stand out or blend in?"
+   - Options:
+     - Stand out (different color palette from competitors)
+     - Blend in (industry-standard colors for familiarity)
+     - Not sure
+   - If "stand out": "What colors do competitors use?"
+
+#### Round 3: Typography & Style (use AskUserQuestion)
+
+7. **Typography Preference**
+   - Question: "What font style fits your brand?"
+   - Options:
+     - Sans-serif, modern (Inter, Poppins, Outfit)
+     - Sans-serif, geometric (Roboto, Source Sans, Nunito)
+     - Serif, traditional (Merriweather, Lora, Playfair)
+     - Monospace, technical (JetBrains Mono, Fira Code)
+   - Follow-up: "Any specific Google Fonts you've seen and liked?"
+
+8. **Visual Density**
+   - Question: "How dense should the interface be?"
+   - Options:
+     - Spacious (lots of whitespace, breathing room)
+     - Balanced (standard spacing)
+     - Compact (data-dense, information-heavy)
+   - Context: "This affects spacing tokens globally"
+
+9. **Corner Style**
+   - Question: "What corner radius style do you prefer?"
+   - Options:
+     - Sharp (0-2px) — technical, precise
+     - Subtle (4-6px) — balanced, professional
+     - Rounded (8-12px) — friendly, approachable
+     - Pill-shaped (full) — playful, modern
+
+#### Round 4: Existing Assets (use AskUserQuestion)
+
+10. **Existing Brand Guidelines**
+    - Question: "Do you have existing brand guidelines or a style guide?"
+    - Options:
+      - Yes, I'll share the colors/fonts
+      - We have a logo but no full guidelines
+      - No, starting fresh
+    - If yes: "Please provide: Primary color hex, secondary color hex, font names"
+
+11. **Dark Mode Priority**
+    - Question: "How important is dark mode?"
+    - Options:
+      - Primary (users will mostly use dark mode)
+      - Equal priority (both themes equally important)
+      - Secondary (light mode is primary, dark mode is nice-to-have)
+      - Not needed (light mode only)
+
+#### Summary Before Proceeding
+
+After all questions, present a summary:
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 DESIGN TOKEN INPUTS CONFIRMED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Brand: [personality] for [audience]
+Emotion: [desired emotional response]
+Colors:
+  Primary: [hex or family]
+  Avoid: [colors to avoid]
+  Differentiation: [stand out / blend in]
+Typography: [font style preference]
+Density: [spacious / balanced / compact]
+Corners: [radius style]
+Dark Mode: [priority level]
+Existing Assets: [yes/no, details]
+
+Proceed to generate tokens?
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+---
+
+### 🚦 GATE: Question Completion Check
+
+**Before proceeding to Step 2, verify:**
+
+| Question | Answered? |
+|----------|-----------|
+| 1. Brand Personality | [ ] |
+| 2. Target Audience | [ ] |
+| 3. Emotional Response | [ ] |
+| 4. Primary Color | [ ] |
+| 5. Color Associations | [ ] |
+| 6. Competitive Differentiation | [ ] |
+| 7. Typography Preference | [ ] |
+| 8. Visual Density | [ ] |
+| 9. Corner Style | [ ] |
+| 10. Existing Brand Guidelines | [ ] |
+| 11. Dark Mode Priority | [ ] |
+
+**Gate Rule:** If ANY checkbox is unchecked, you MUST go back and ask that question. Do NOT proceed.
+
+**Only proceed to Step 2 when:**
+1. All 11 questions are answered ✓
+2. Summary has been presented to user ✓
+3. User has explicitly confirmed "Proceed" ✓
+
+---
+
+**EXCEPTION: Defaults** — Only if user explicitly says "use defaults" or "skip all questions", use:
 - Primary: `#6366f1` (indigo)
 - Secondary: `#8b5cf6` (violet)
 - Accent: `#06b6d4` (cyan)
 - Neutral: slate palette
+
+But even then, ask: "Are you sure? Custom tokens lead to a better design system. It only takes 2-3 minutes."
 
 ### Step 2: Generate Tailwind Color Palette
 

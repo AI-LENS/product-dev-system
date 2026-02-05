@@ -118,41 +118,65 @@ prompt: "Execute Step X: [description]. Write output to [path]. Return summary w
 
 For parallel steps, include multiple Task calls in a single message.
 
-## Step Completion Protocol — MANDATORY
+## Step Completion Protocol — MANDATORY USER CONFIRMATION
 
-**CRITICAL:** Every step MUST follow this protocol:
+**⛔ CRITICAL:** Every step MUST follow this protocol. NO EXCEPTIONS. NO AUTO-PROCEEDING.
 
 1. **Execute** the step (run the command logic)
 2. **Verify** the artifact was created correctly
 3. **Present Summary** to user showing what was created
-4. **Confirm** user is satisfied before proceeding
+4. **🚦 WAIT FOR USER CONFIRMATION** — MUST get explicit approval before proceeding
 5. **Log** completion with timestamp
 
-### Step Confirmation Pattern
+### Step Confirmation Pattern — REQUIRED AFTER EVERY STEP
 
-After each step, use AskUserQuestion:
+**You MUST use AskUserQuestion after EVERY step to get explicit user approval:**
 
 ```
-Step [N] Complete: [Step Name]
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ STEP [N] COMPLETE: [Step Name]
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 Artifact created: [path]
+
 Key outputs:
-  - [Summary point 1]
-  - [Summary point 2]
-  - [Summary point 3]
+  • [Summary point 1]
+  • [Summary point 2]
+  • [Summary point 3]
 
-Ready to proceed to Step [N+1]: [Next Step Name]?
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[Show relevant snippet or key content from the artifact]
 
-Options:
-- Yes, proceed to [Next Step]
-- Review/edit the artifact first
-- Skip to a different step
-- Stop here (save progress)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
-**DO NOT proceed to the next step without explicit user confirmation.**
+**Then ALWAYS ask via AskUserQuestion:**
+
+```
+Question: "Are you satisfied with this output?"
+Header: "Step [N] Review"
+Options:
+  - "Yes, looks good — proceed to Step [N+1]: [Next Step Name]" (Recommended)
+  - "No, I want to review/edit the artifact first"
+  - "Stop here and save progress"
+```
+
+### Enforcement Rules — NON-NEGOTIABLE
+
+1. **Do NOT proceed** to the next step without explicit "Yes" from user
+2. **Do NOT auto-continue** even if the output looks correct
+3. **Do NOT batch multiple steps** without confirmation between each
+4. **If user says "review/edit"**: Wait for them to finish, then re-run the step or re-present summary
+5. **If user says "stop"**: Save progress gracefully and provide resume instructions
+6. **EVERY step must have this confirmation** — Steps 0 through 12, no exceptions
+
+### Why This Matters
+
+- Each artifact becomes INPUT to the next step
+- Errors in early steps COMPOUND in later steps
+- User must validate before their input shapes the next artifact
+- Catching issues early saves significant rework later
+
+**⛔ VIOLATION:** Proceeding without user confirmation is a critical protocol violation.
 
 ## Instructions
 
@@ -170,6 +194,8 @@ Check if `devflow/devflow.config` exists.
 - **If missing:** Run the `/devflow:init` logic — create directory structure, GitHub labels, validate auth.
 - **If exists:** Skip. Print: `DevFlow already initialized. Skipping init.`
 
+**🚦 CONFIRMATION REQUIRED:** Present summary of what was created, ask user to confirm before proceeding.
+
 ### Step 2: Principles (if needed)
 
 Check if `devflow/templates/principles/principles.md` or equivalent project principles file exists.
@@ -178,11 +204,15 @@ Check if `devflow/templates/principles/principles.md` or equivalent project prin
   - If skip: Continue without principles.
 - **If exists:** Skip. Print: `Project principles already defined. Skipping.`
 
+**🚦 CONFIRMATION REQUIRED:** Present principles summary, ask user to confirm before proceeding.
+
 ### Step 3: Context (if needed)
 
 Check if `devflow/context/` contains any `.md` files.
 - **If empty:** Run `/context:create` logic — analyze the codebase and generate baseline context documents.
 - **If exists:** Skip. Print: `Context docs already exist. Skipping. Run /context:update to refresh.`
+
+**🚦 CONFIRMATION REQUIRED:** Present context summary, ask user to confirm before proceeding.
 
 ### Step 4: PRD
 
@@ -221,6 +251,8 @@ Brainstorm a Library Brief. Capture:
 Write to `devflow/prds/<name>.md` with frontmatter including `scope: <scope>`.
 
 - **If exists:** Print: `PRD for <name> already exists. Skipping. Run /pm:prd-edit <name> to modify.`
+
+**🚦 CONFIRMATION REQUIRED:** Present full PRD summary with key sections, ask user: "Are you satisfied with this PRD?"
 
 ### Step 4a: Gate — PRD
 
@@ -272,9 +304,10 @@ Create an API Contract. Structure:
 - Compatibility matrix (Python versions, OS, dependencies)
 
 Write to `devflow/specs/<name>.md` with proper frontmatter.
-Present to user for review.
 
 - **If exists:** Print: `Spec for <name> already exists. Skipping.`
+
+**🚦 CONFIRMATION REQUIRED:** Present full spec summary (user stories count, FRs, entities), ask user: "Are you satisfied with this spec?"
 
 ### Step 5a: Gate — Spec
 
@@ -290,6 +323,8 @@ Ask the user: "Would you like to clarify ambiguities in the spec? (recommended f
 - **If yes:** Run `/pm:spec-clarify <name>` logic — structured Q&A (max 5 rounds) to resolve ambiguities. Update spec file.
 - **If no:** Skip.
 
+**🚦 CONFIRMATION REQUIRED:** If clarify was run, present updated spec sections, ask user: "Are the clarifications correct?"
+
 ### Step 7: Analyze
 
 **Load both PRD and Spec for comparison:**
@@ -302,6 +337,8 @@ Run `/pm:spec-analyze <name>` logic:
 - **Scope: library** — additionally check for: missing error cases, inconsistent naming, undocumented side effects, missing edge cases in API contracts
 - Present findings to user
 - If issues found, offer to fix them
+
+**🚦 CONFIRMATION REQUIRED:** Present analysis findings, ask user: "Are you satisfied with the analysis? Any issues to address before planning?"
 
 ### Step 8: Plan
 
@@ -346,9 +383,10 @@ Generate a Library Plan:
 - Publish strategy (PyPI, private index, vendored)
 
 Write to `devflow/specs/<name>-plan.md` with proper frontmatter.
-Present plan to user for review.
 
 - **If exists:** Print: `Technical plan for <name> already exists. Skipping.`
+
+**🚦 CONFIRMATION REQUIRED:** Present full plan summary (architecture, data model, API design), ask user: "Are you satisfied with this technical plan?"
 
 ### Step 8a: Gate — Plan
 
@@ -463,12 +501,28 @@ Read:
 
 **Scope: feature** — Ask: "Does this feature include a user interface?"
 
-- **If yes:** Run design sub-sequence (using spec's user stories to inform UI):
+- **If yes:** Run design sub-sequence with MANDATORY probing questions:
+
+  **⚠️ CRITICAL: Each design command has mandatory probing questions that MUST be answered.**
+  **Do NOT rush through design. Do NOT skip questions. Do NOT use defaults without explicit user request.**
+
   1. `/design:design-tokens` — Create/verify design token system
+     - **11 mandatory questions** about brand, colors, typography
+     - Gate: All questions answered before generating tokens
+
   2. `/design:design-shell` — Design app shell layout (product scope only, skip for feature if shell exists)
+     - **18 mandatory questions** about navigation, layout, responsiveness
+     - Gate: All questions answered before generating shell
+
   3. Ask which sections need UI specs, then for each:
      - `/design:shape-section <section>` — Per-section UI spec
+     - **17 mandatory questions** about data, actions, edge cases, layout
+     - Gate: All questions answered before generating section spec
+
   4. `/design:export` — Generate handoff package
+
+  **Design Phase Gate:** All design artifacts created with full question coverage.
+
 - **If no/skip:** Skip design phase entirely.
 
 ### Step 10: Epic Decompose
@@ -569,6 +623,8 @@ Each task file should include `phase: <N>` and `feature: <name>` in frontmatter.
 
 - **If exists:** Print: `Epic for <name> already exists. Skipping.`
 
+**🚦 CONFIRMATION REQUIRED:** Present epic summary (phases, task count, dependencies), ask user: "Are you satisfied with this task breakdown?"
+
 ### Step 10a: Gate — Epic
 
 Run `/devflow:gate epic <name>`.
@@ -583,6 +639,8 @@ Ask the user: "Push tasks to GitHub as issues?"
 - **If yes:** Run `/pm:epic-sync <name>` logic — create GitHub issues with labels and cross-references.
   - **Scope: product** — also sync sub-epics per feature.
 - **If no:** Skip. Tasks remain local in `devflow/epics/<name>/`.
+
+**🚦 CONFIRMATION REQUIRED:** Present sync results (issues created, labels applied), ask user: "Are the GitHub issues correct?"
 
 ### Step 12: Summary
 

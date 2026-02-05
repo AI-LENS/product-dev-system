@@ -135,6 +135,10 @@ Both phases are resumable. If interrupted:
 | Python 3.10+ | Yes |
 | Claude Code | Yes |
 
+## Acknowledgments
+
+Shoutout to [DesignOS](https://github.com/designos) and [SpecKit](https://github.com/speckit) for the inspiration and some components that influenced this project.
+
 ## License
 
 MIT — AI LENS

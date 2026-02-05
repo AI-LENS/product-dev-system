@@ -22,11 +22,89 @@ Where `<name>` matches the name used in `/devflow:kickstart <name>`.
 2. Skip completed tasks, resume in-progress tasks
 3. Continue from the first incomplete step
 
-**The command asks before each major step**, so you can also:
-- Skip steps you've already done manually
-- Jump to a specific phase
-
 **To check current status:** Run `/pm:status` to see what's complete vs pending.
+
+## Execution Policy — NO SKIPPING
+
+**ALL steps are MANDATORY. Gates are BLOCKING. No exceptions.**
+
+- Every step in the pipeline MUST be executed in sequence
+- Gates MUST pass before proceeding — there is no "skip" option
+- If a gate fails, execution STOPS until the issue is fixed
+- User cannot skip steps, jump ahead, or bypass gates
+- The only valid responses at gates are: "Fix and retry" or "Abort execution"
+
+## Step Completion Protocol — MANDATORY USER CONFIRMATION
+
+**⛔ CRITICAL:** After EVERY step, you MUST get explicit user approval before proceeding.
+
+### Step Confirmation Pattern — REQUIRED AFTER EVERY STEP
+
+**After completing ANY step (including sub-steps like 3.2, 3.3, etc.), present:**
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ STEP [N.X] COMPLETE: [Step Name]
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+What was done:
+  • [Action 1]
+  • [Action 2]
+  • [Action 3]
+
+Results:
+  • Files created/modified: [list]
+  • Tests run: [X passed, Y failed]
+  • Coverage: [X%]
+
+[Show relevant output or summary]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+**Then ALWAYS ask via AskUserQuestion:**
+
+```
+Question: "Are you satisfied with this step's output?"
+Header: "Step [N.X] Review"
+Options:
+  - "Yes, proceed to Step [N.X+1]: [Next Step Name]" (Recommended)
+  - "No, there are issues — let me review first"
+  - "Stop execution here"
+```
+
+### Enforcement Rules — NON-NEGOTIABLE
+
+1. **Do NOT proceed** to the next step without explicit "Yes" from user
+2. **Do NOT auto-continue** even if tests pass and everything looks correct
+3. **Do NOT batch multiple steps** without confirmation between each
+4. **Ask after EVERY sub-step** in Phase Execution (3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9)
+5. **If user says "issues"**: Stop, let them review, address concerns before continuing
+6. **If user says "stop"**: Save progress gracefully and provide resume instructions
+
+### Steps Requiring Confirmation
+
+| Step | Name | Confirmation Required |
+|------|------|----------------------|
+| 1 | Pre-flight Summary | ✅ Yes |
+| 2 | Bootstrap | ✅ Yes |
+| 3.1 | Phase Start | ✅ Yes |
+| 3.2 | DB Layer | ✅ Yes |
+| 3.3 | API Layer | ✅ Yes |
+| 3.4 | UI Layer | ✅ Yes |
+| 3.5 | E2E Tests | ✅ Yes |
+| 3.6 | Regression Suite | ✅ Yes |
+| 3.7 | ADR Compliance | ✅ Yes |
+| 3.8 | Local Verification | ✅ Yes |
+| 3.9 | Phase Gate | ✅ Yes |
+| 4 | Test Summary | ✅ Yes |
+| 5 | Quality Checks | ✅ Yes |
+| 6 | Documentation | ✅ Yes |
+| 7 | Review | ✅ Yes |
+| 8 | Ship | ✅ Yes |
+| 9 | Final Summary | ✅ Yes |
+
+**⛔ VIOLATION:** Proceeding without user confirmation is a critical protocol violation.
 
 ## Core Principles — NON-NEGOTIABLE
 
@@ -229,7 +307,7 @@ Track this mapping throughout execution and update status:
 
 ### Step 1: Pre-flight Summary & Test Mapping
 
-Read all artifacts and present:
+Read all artifacts and present the COMPLETE execution plan with ALL steps:
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -262,10 +340,72 @@ Phases Detected:
 ADRs to Enforce:
   - ADR-001: [title]
   - ADR-002: [title]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 MANDATORY EXECUTION STEPS (ALL will be executed)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP 2: BOOTSTRAP (product scope only)
+  ├─ /init:project — Scaffold project
+  ├─ /init:database — SQLAlchemy + Alembic
+  ├─ /init:auth — JWT authentication
+  ├─ /init:ai — AI/LLM layer (if applicable)
+  ├─ /init:deploy — CI/CD scaffold
+  └─ 🚦 GATE: Bootstrap verification (BLOCKING)
+
+FOR EACH PHASE (Steps 3.1-3.9):
+  ├─ Step 3.1: Phase Start — Load artifacts
+  ├─ Step 3.2: DB Layer — Models, migrations, seeds
+  │   └─ 🚦 GATE: DB tests pass (BLOCKING)
+  ├─ Step 3.3: API Layer — Schemas, services, endpoints
+  │   └─ 🚦 GATE: API tests pass (BLOCKING)
+  ├─ Step 3.4: UI Layer — Components, pages, state
+  │   └─ 🚦 GATE: UI tests pass (BLOCKING)
+  ├─ Step 3.5: E2E Tests — User story validation
+  │   └─ 🚦 GATE: All E2E tests pass (BLOCKING)
+  ├─ Step 3.6: Regression Suite — All previous tests
+  │   └─ 🚦 GATE: Zero regressions (BLOCKING)
+  ├─ Step 3.7: ADR Compliance — Verify decisions followed
+  │   └─ 🚦 GATE: No violations (BLOCKING)
+  ├─ Step 3.8: Local Verification — User confirms feature
+  │   └─ 🚦 GATE: User sign-off (BLOCKING)
+  └─ Step 3.9: Phase Gate — All criteria checked
+      └─ 🚦 GATE: Phase complete (BLOCKING)
+
+STEP 4: TEST SUMMARY
+  └─ Final test report with coverage
+
+STEP 5: QUALITY CHECKS
+  ├─ Linting (ruff)
+  ├─ Type checking (mypy)
+  └─ Security (bandit, pip-audit)
+
+STEP 6: DOCUMENTATION (Mintlify)
+  └─ Generate beginner-friendly docs
+
+STEP 7: REVIEW
+  └─ /review:pr-checklist with ADR compliance
+
+STEP 8: SHIP
+  ├─ /deploy:setup — CI/CD pipeline
+  ├─ /deploy:docker — Containerization
+  ├─ /deploy:env-check — Environment validation
+  └─ /review:release — Pre-release validation
+
+STEP 9: FINAL SUMMARY
+  └─ Execution complete report
+
+⚠️  ALL gates are BLOCKING. Execution cannot proceed if any gate fails.
+⚠️  Steps CANNOT be skipped. The only options are: proceed or abort.
+⚠️  USER CONFIRMATION required after EVERY step before proceeding.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
-Ask: "Proceed with full execution?"
+**🚦 CONFIRMATION REQUIRED:** Ask via AskUserQuestion:
+- "Yes, start execution" (Recommended)
+- "Abort"
+
+**There is NO "skip to step X" option. There is NO "skip phase" option.**
 
 ### Step 2: Bootstrap (product scope only)
 
@@ -292,7 +432,7 @@ Before bootstrapping, read:
 - [ ] Auth approach matches ADR
 - [ ] Environment variables match plan's config requirements
 
-**MANDATORY GATE: Bootstrap**
+**MANDATORY GATE: Bootstrap (BLOCKING)**
 
 ```bash
 # Verify project starts
@@ -301,7 +441,11 @@ python -c "from app.main import app; print('OK')"  # Server check
 alembic upgrade head  # DB migration
 ```
 
-All checks MUST pass before proceeding.
+**Gate Evaluation:**
+- If ALL checks pass: Display "Bootstrap Gate: ✅ PASSED" → Proceed to Step 3
+- If ANY check fails: Display "Bootstrap Gate: ❌ BLOCKED" → STOP
+  - Present ONLY: "Fix and retry" or "Abort execution"
+  - **NO skip option exists**
 
 ### Step 3: Phase Execution Loop — THE CORE
 
@@ -372,6 +516,13 @@ pytest tests/integration/test_db*.py -v --tb=short
 
 If tests fail: STOP. Fix. Re-run. DO NOT PROCEED.
 
+**🚦 CONFIRMATION REQUIRED:** Present DB layer summary (models created, migrations applied, test results), then ask via AskUserQuestion:
+- "Yes, DB layer looks good — proceed to Step 3.3: API Layer" (Recommended)
+- "No, there are issues — let me review first"
+- "Stop execution here"
+
+**Do NOT proceed to API Layer without explicit user approval.**
+
 #### Step 3.3: Build API Layer
 
 **FIRST: Load Required Artifacts**
@@ -405,6 +556,13 @@ pytest tests/integration/test_api*.py -v --tb=short
 
 If tests fail: STOP. Fix. Re-run. DO NOT PROCEED.
 
+**🚦 CONFIRMATION REQUIRED:** Present API layer summary (endpoints created, schemas, test results), then ask via AskUserQuestion:
+- "Yes, API layer looks good — proceed to Step 3.4: UI Layer" (Recommended)
+- "No, there are issues — let me review first"
+- "Stop execution here"
+
+**Do NOT proceed to UI Layer without explicit user approval.**
+
 #### Step 3.4: Build UI Layer (if applicable)
 
 **FIRST: Load Design Artifacts**
@@ -435,6 +593,13 @@ ng test --code-coverage
 ```
 
 If tests fail: STOP. Fix. Re-run. DO NOT PROCEED.
+
+**🚦 CONFIRMATION REQUIRED:** Present UI layer summary (components created, pages, test results), then ask via AskUserQuestion:
+- "Yes, UI layer looks good — proceed to Step 3.5: E2E Tests" (Recommended)
+- "No, there are issues — let me review first"
+- "Stop execution here"
+
+**Do NOT proceed to E2E Tests without explicit user approval.**
 
 #### Step 3.5: E2E Tests — USER STORY VALIDATION (MANDATORY)
 
@@ -514,6 +679,13 @@ Phase {N} Tests: ALL PASSED ✓
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
+**🚦 CONFIRMATION REQUIRED:** Present E2E test summary (user stories covered, acceptance criteria verified), then ask via AskUserQuestion:
+- "Yes, E2E tests look good — proceed to Step 3.6: Regression Suite" (Recommended)
+- "No, there are issues — let me review first"
+- "Stop execution here"
+
+**Do NOT proceed to Regression Suite without explicit user approval.**
+
 #### Step 3.6: Regression Suite — MANDATORY
 
 **Run ALL previous phase tests to ensure no regressions.**
@@ -544,6 +716,13 @@ Coverage: 87%
 - Fix the regression
 - Re-run full suite
 - DO NOT PROCEED until 100% previous tests pass
+
+**🚦 CONFIRMATION REQUIRED:** Present regression suite results (all phases, total tests), then ask via AskUserQuestion:
+- "Yes, no regressions — proceed to Step 3.7: ADR Compliance" (Recommended)
+- "No, there are issues — let me review first"
+- "Stop execution here"
+
+**Do NOT proceed to ADR Compliance without explicit user approval.**
 
 #### Step 3.7: ADR Compliance Check — MANDATORY
 
@@ -578,6 +757,13 @@ Status: 1 VIOLATION found
 
 **If ADR violation found:** STOP. Fix. Re-check. DO NOT PROCEED.
 
+**🚦 CONFIRMATION REQUIRED:** Present ADR compliance results (each ADR status), then ask via AskUserQuestion:
+- "Yes, ADR compliance verified — proceed to Step 3.8: Local Verification" (Recommended)
+- "No, there are issues — let me review first"
+- "Stop execution here"
+
+**Do NOT proceed to Local Verification without explicit user approval.**
+
 #### Step 3.8: Local Verification — MANDATORY
 
 Deploy locally and have user verify:
@@ -607,40 +793,54 @@ Use AskUserQuestion:
 - Yes, feature works correctly → Proceed to next phase
 - No, issues found → STOP. Fix. Re-verify.
 
-#### Step 3.9: Phase Gate — MANDATORY CHECKPOINT
+#### Step 3.9: Phase Gate — MANDATORY BLOCKING CHECKPOINT
+
+**THIS GATE IS NON-NEGOTIABLE. NO SKIP OPTION EXISTS.**
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 🚦 PHASE GATE: Phase {N} - {Feature Name}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Checklist (ALL must be ✓):
-  ✓ DB Layer: {N} models, migrations applied
-  ✓ API Layer: {N} endpoints, all tests pass
-  ✓ UI Layer: {N} components, all tests pass
-  ✓ Unit Tests: {N}/{N} passed
-  ✓ Integration Tests: {N}/{N} passed
-  ✓ E2E Tests: {N}/{N} passed
-  ✓ Regression Suite: {N}/{N} passed (0 regressions)
-  ✓ ADR Compliance: No violations
-  ✓ User Verification: Confirmed
-  ✓ Coverage: {X}% (>= 80% required)
+Checklist (ALL must be ✓ to proceed):
+  [ ] DB Layer: {N} models, migrations applied
+  [ ] API Layer: {N} endpoints, all tests pass
+  [ ] UI Layer: {N} components, all tests pass
+  [ ] Unit Tests: {N}/{N} passed
+  [ ] Integration Tests: {N}/{N} passed
+  [ ] E2E Tests: {N}/{N} passed
+  [ ] Regression Suite: {N}/{N} passed (0 regressions)
+  [ ] ADR Compliance: No violations
+  [ ] User Verification: Confirmed
+  [ ] Coverage: {X}% (>= 80% required)
 
 User Stories Completed:
-  ✓ US-001: {title} - All acceptance criteria met
-  ✓ US-002: {title} - All acceptance criteria met
+  [ ] US-001: {title} - All acceptance criteria met
+  [ ] US-002: {title} - All acceptance criteria met
 
-Phase Status: ✅ PASSED
-
-Ready to proceed to Phase {N+1}?
+Phase Status: [EVALUATING...]
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
-**If ANY checklist item is not ✓:**
-- DO NOT display "Phase Status: PASSED"
-- Display "Phase Status: ❌ BLOCKED"
-- List the failing items
-- STOP and fix before proceeding
+**Gate Evaluation Rules:**
+
+1. **If ALL checklist items are ✓:**
+   - Display "Phase Status: ✅ PASSED"
+   - Automatically proceed to Phase {N+1}
+
+2. **If ANY checklist item is ✗:**
+   - Display "Phase Status: ❌ BLOCKED"
+   - List ALL failing items with details
+   - Present ONLY these options via AskUserQuestion:
+     - "Fix issues and re-run gate" (Recommended)
+     - "Abort execution entirely"
+   - **There is NO skip option. There is NO proceed option.**
+   - Execution CANNOT continue until all items pass
+
+3. **Re-running the gate:**
+   - After fixes, re-execute the failed steps (3.2-3.8 as needed)
+   - Then re-evaluate this gate
+   - Repeat until all items pass or user aborts
 
 ### Step 4: Test Summary (After All Phases)
 
@@ -679,6 +879,13 @@ Coverage Report: htmlcov/index.html
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
+**🚦 CONFIRMATION REQUIRED:** Present final test report, then ask via AskUserQuestion:
+- "Yes, test summary looks good — proceed to Step 5: Quality Checks" (Recommended)
+- "No, there are issues — let me review first"
+- "Stop execution here"
+
+**Do NOT proceed to Quality Checks without explicit user approval.**
+
 ### Step 5: Quality Checks
 
 Run comprehensive quality checks:
@@ -695,6 +902,13 @@ mypy app/ --strict
 bandit -r app/
 pip-audit
 ```
+
+**🚦 CONFIRMATION REQUIRED:** Present quality check results (linting, type checking, security), then ask via AskUserQuestion:
+- "Yes, quality checks pass — proceed to Step 6: Documentation" (Recommended)
+- "No, there are issues — let me review first"
+- "Stop execution here"
+
+**Do NOT proceed to Documentation without explicit user approval.**
 
 ### Step 6: Documentation (Mintlify)
 
@@ -801,9 +1015,23 @@ Ask: "Generate documentation?"
 
 - **If skip:** Continue. Docs can be added later.
 
+**🚦 CONFIRMATION REQUIRED:** Present documentation summary (pages created, structure), then ask via AskUserQuestion:
+- "Yes, documentation looks good — proceed to Step 7: Review" (Recommended)
+- "No, there are issues — let me review first"
+- "Stop execution here"
+
+**Do NOT proceed to Review without explicit user approval.**
+
 ### Step 7: Review
 
 Run `/review:pr-checklist` with mandatory ADR compliance check.
+
+**🚦 CONFIRMATION REQUIRED:** Present PR checklist results, then ask via AskUserQuestion:
+- "Yes, review complete — proceed to Step 8: Ship" (Recommended)
+- "No, there are issues — let me review first"
+- "Stop execution here"
+
+**Do NOT proceed to Ship without explicit user approval.**
 
 ### Step 8: Ship
 
@@ -813,6 +1041,13 @@ Prepare for deployment with final validation:
 2. `/deploy:docker` — Dockerfile + compose
 3. `/deploy:env-check` — Validate env vars
 4. `/review:release` — Pre-release validation
+
+**🚦 CONFIRMATION REQUIRED:** Present deployment setup results (CI/CD, Docker, env vars), then ask via AskUserQuestion:
+- "Yes, deployment ready — proceed to Step 9: Final Summary" (Recommended)
+- "No, there are issues — let me review first"
+- "Stop execution here"
+
+**Do NOT proceed to Final Summary without explicit user approval.**
 
 ### Step 9: Final Summary
 
