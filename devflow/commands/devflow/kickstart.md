@@ -182,6 +182,105 @@ Options:
 
 Execute the following steps IN SEQUENCE. Never skip a step unless the artifact already exists or user explicitly chooses to skip. Use TaskCreate to track progress.
 
+---
+
+## Pipeline Overview — PRESENT BEFORE STARTING
+
+**⛔ MANDATORY: Before starting ANY step, present the complete pipeline with progress tracking.**
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 BRAINSTORMING PIPELINE: <name>
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP | NAME           | ARTIFACT                          | STATUS
+-----|----------------|-----------------------------------|--------
+0    | Scope          | PRD frontmatter: scope            | ⏳ Pending
+1    | Initialize     | devflow/devflow.config            | ⏳ Pending
+2    | Principles     | devflow/templates/principles/     | ⏳ Pending
+3    | Context        | devflow/context/*.md              | ⏳ Pending
+4    | PRD            | devflow/prds/<name>.md            | ⏳ Pending
+4a   | Gate: PRD      | —                                 | ⏳ Pending
+5    | Spec           | devflow/specs/<name>.md           | ⏳ Pending
+5a   | Gate: Spec     | —                                 | ⏳ Pending
+6    | Clarify        | (updates spec)                    | ⏳ Pending
+7    | Analyze        | —                                 | ⏳ Pending
+8    | Plan           | devflow/specs/<name>-plan.md      | ⏳ Pending
+8a   | Gate: Plan     | —                                 | ⏳ Pending
+8b   | ADRs           | devflow/adrs/ADR-*.md             | ⏳ Pending
+9    | Design         | (5 sub-steps)                     | ⏳ Pending
+10   | Decompose      | devflow/epics/<name>/             | ⏳ Pending
+10a  | Gate: Epic     | —                                 | ⏳ Pending
+11   | Sync           | GitHub Issues                     | ⏳ Pending
+12   | Summary        | —                                 | ⏳ Pending
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+**Update this tracker after EVERY step:** Change ⏳ to ✅ when complete, 🔄 for current step.
+
+---
+
+## Directory Setup — MANDATORY FIRST ACTION
+
+**⛔ BEFORE ANY ARTIFACT CREATION, ensure all directories exist:**
+
+```bash
+mkdir -p devflow/prds
+mkdir -p devflow/specs
+mkdir -p devflow/epics
+mkdir -p devflow/adrs
+mkdir -p devflow/context
+mkdir -p devflow/designs
+mkdir -p devflow/templates/principles
+```
+
+If any mkdir fails, STOP and investigate before proceeding.
+
+---
+
+## Artifact Chain — INPUT → OUTPUT Dependencies
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ ARTIFACT DEPENDENCY CHAIN — Each step REQUIRES artifacts from previous     │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  Step 0: Scope Selection                                                    │
+│    OUTPUT: scope (stored in PRD frontmatter)                                │
+│    ▼                                                                        │
+│  Step 4: PRD                                                                │
+│    INPUT:  scope                                                            │
+│    OUTPUT: devflow/prds/<name>.md                                           │
+│    VERIFY: File exists, has frontmatter with scope                          │
+│    ▼                                                                        │
+│  Step 5: Spec                                                               │
+│    INPUT:  devflow/prds/<name>.md ← MUST READ BEFORE WRITING                │
+│    OUTPUT: devflow/specs/<name>.md                                          │
+│    VERIFY: File exists, has user stories, traces to PRD                     │
+│    ▼                                                                        │
+│  Step 8: Plan                                                               │
+│    INPUT:  devflow/specs/<name>.md + devflow/prds/<name>.md                 │
+│    OUTPUT: devflow/specs/<name>-plan.md                                     │
+│    VERIFY: File exists, has architecture, traces to spec                    │
+│    ▼                                                                        │
+│  Step 9: Design                                                             │
+│    INPUT:  devflow/specs/<name>-plan.md + devflow/specs/<name>.md           │
+│    OUTPUT: devflow/designs/*.md + src/app/models/*.ts + src/app/mocks/*.ts  │
+│    VERIFY: All design artifacts exist per section list                      │
+│    ▼                                                                        │
+│  Step 10: Decompose                                                         │
+│    INPUT:  ALL above artifacts                                              │
+│    OUTPUT: devflow/epics/<name>/epic.md + task files                        │
+│    VERIFY: Epic exists, tasks trace to FRs/US                               │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+**⛔ ENFORCEMENT: Before writing ANY artifact, you MUST read its input artifacts first.**
+
+---
+
 ### Step 0: Scope Selection
 
 Use AskUserQuestion to have user select scope: **product**, **feature**, or **library**.
@@ -216,7 +315,12 @@ Check if `devflow/context/` contains any `.md` files.
 
 ### Step 4: PRD
 
-Check if `devflow/prds/<name>.md` exists.
+**FIRST: Verify directory exists:**
+```bash
+mkdir -p devflow/prds
+```
+
+**THEN: Check if `devflow/prds/<name>.md` exists.**
 - **If missing:** Run `/pm:prd-new <name>` logic, adapted by scope:
 
 **Scope: product**
@@ -250,9 +354,37 @@ Brainstorm a Library Brief. Capture:
 
 Write to `devflow/prds/<name>.md` with frontmatter including `scope: <scope>`.
 
+**ARTIFACT VERIFICATION — MANDATORY:**
+```bash
+ls -la devflow/prds/<name>.md
+# Verify file exists and is non-empty
+```
+
+If file missing or empty: STOP. Investigate. Do NOT proceed.
+
 - **If exists:** Print: `PRD for <name> already exists. Skipping. Run /pm:prd-edit <name> to modify.`
 
-**🚦 CONFIRMATION REQUIRED:** Present full PRD summary with key sections, ask user: "Are you satisfied with this PRD?"
+**Present Progress Update:**
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ STEP 4 COMPLETE: PRD Created
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Artifact: devflow/prds/<name>.md
+Scope: <product|feature|library>
+
+Key sections:
+  • Problem/Purpose: [summary]
+  • Users/Consumers: [list]
+  • Features/API Surface: [count] items
+  • Constraints: [list]
+  • Out of Scope: [list]
+
+Next: Step 4a — PRD Gate (quality check)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+**🚦 CONFIRMATION REQUIRED:** Ask user: "Are you satisfied with this PRD?"
 
 ### Step 4a: Gate — PRD
 
@@ -264,8 +396,24 @@ Run `/devflow:gate prd <name>`.
 
 ### Step 5: Spec
 
-**FIRST: Load PRD artifact**
-Read `devflow/prds/<name>.md` — this is the input for spec creation.
+**⛔ PREREQUISITE CHECK — MANDATORY:**
+```bash
+# Verify PRD exists (input artifact)
+ls -la devflow/prds/<name>.md
+```
+If PRD does NOT exist: STOP. Print: "Cannot create spec — PRD not found. Run Step 4 first."
+
+**THEN: Load PRD artifact**
+Read `devflow/prds/<name>.md` — this is the input for spec creation. Extract:
+- Problem statement / purpose
+- User personas / consumers
+- Feature list / API surface
+- Constraints
+
+**THEN: Ensure directory exists:**
+```bash
+mkdir -p devflow/specs
+```
 
 Check if `devflow/specs/<name>.md` exists.
 - **If missing:** Run `/pm:spec-create <name>` logic, adapted by scope.
@@ -305,9 +453,39 @@ Create an API Contract. Structure:
 
 Write to `devflow/specs/<name>.md` with proper frontmatter.
 
+**ARTIFACT VERIFICATION — MANDATORY:**
+```bash
+ls -la devflow/specs/<name>.md
+# Verify file exists and is non-empty
+```
+
+If file missing or empty: STOP. Investigate. Do NOT proceed.
+
 - **If exists:** Print: `Spec for <name> already exists. Skipping.`
 
-**🚦 CONFIRMATION REQUIRED:** Present full spec summary (user stories count, FRs, entities), ask user: "Are you satisfied with this spec?"
+**Present Progress Update:**
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ STEP 5 COMPLETE: Spec Created
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Artifact: devflow/specs/<name>.md
+Input Used: devflow/prds/<name>.md ✓
+
+Key sections:
+  • User Stories: [N] stories with Given/When/Then
+  • Functional Requirements: [N] FRs
+  • Key Entities: [list]
+  • Priority: P1=[N], P2=[N], P3=[N]
+
+Traceability:
+  • PRD features → Spec US: [X]% coverage
+
+Next: Step 5a — Spec Gate (quality check)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+**🚦 CONFIRMATION REQUIRED:** Ask user: "Are you satisfied with this spec?"
 
 ### Step 5a: Gate — Spec
 
@@ -342,7 +520,14 @@ Run `/pm:spec-analyze <name>` logic:
 
 ### Step 8: Plan
 
-**FIRST: Load Spec and PRD artifacts**
+**⛔ PREREQUISITE CHECK:**
+```bash
+ls -la devflow/prds/<name>.md    # Must exist
+ls -la devflow/specs/<name>.md   # Must exist
+```
+If EITHER is missing: STOP. Cannot create plan without PRD and Spec.
+
+**THEN: Load Spec and PRD artifacts**
 Read:
 - `devflow/specs/<name>.md` — User stories, FRs, entities (PRIMARY INPUT)
 - `devflow/prds/<name>.md` — Constraints, assumptions (for context)
@@ -383,6 +568,12 @@ Generate a Library Plan:
 - Publish strategy (PyPI, private index, vendored)
 
 Write to `devflow/specs/<name>-plan.md` with proper frontmatter.
+
+**ARTIFACT VERIFICATION:**
+```bash
+ls -la devflow/specs/<name>-plan.md
+```
+If missing: STOP. Investigate. Do NOT proceed.
 
 - **If exists:** Print: `Technical plan for <name> already exists. Skipping.`
 

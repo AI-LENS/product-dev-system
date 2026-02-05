@@ -150,9 +150,11 @@ Options:
 6. **Load ADRs:** Read all ADR files from `devflow/adrs/` and extract accepted decisions.
 7. **Load User Stories:** Read spec and extract all US-xxx with acceptance criteria for test mapping.
 8. **Load Design Artifacts (if scope is product/feature with UI):**
-   - `devflow/design/tokens.md` — Design tokens (colors, typography, spacing)
-   - `devflow/design/shell.md` — App shell layout
-   - `devflow/design/sections/*.md` — Section-specific UI specs
+   - `tailwind.config.js` — Design tokens (color palette, DaisyUI themes)
+   - `src/styles/tokens.css` — CSS custom properties (spacing, typography)
+   - `devflow/designs/*.md` — Section-specific UI specs
+   - `src/app/models/*.models.ts` — TypeScript interfaces
+   - `src/app/mocks/*.mock.ts` — Mock data for development
    - If design was created in kickstart but files missing: WARN user.
 9. **Load Context:** Read `devflow/context/*.md` for codebase context.
 
@@ -630,9 +632,57 @@ alembic upgrade head  # DB migration
   - Present ONLY: "Fix and retry" or "Abort execution"
   - **NO skip option exists**
 
+### Step 2b: Phase Identification — MANDATORY BEFORE EXECUTION
+
+**⛔ CRITICAL: Identify ALL phases BEFORE starting execution loop.**
+
+**Read Epic File:**
+```bash
+cat devflow/epics/<name>/epic.md
+```
+
+**Extract Phase List:**
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 IDENTIFIED PHASES FOR EXECUTION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Phase | Feature        | Tasks    | Dependencies | Status
+------|----------------|----------|--------------|--------
+1     | [Auth]         | 001-005  | None         | ⏳ Pending
+2     | [Dashboard]    | 006-011  | Phase 1      | ⏳ Pending
+3     | [Core Feature] | 012-018  | Phase 1      | ⏳ Pending
+...
+
+Total: [N] phases to execute
+Each phase = DB + API + UI + Tests (full stack)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+**Store phase list** — you will iterate through each phase in Step 3.
+
+**🚦 CONFIRMATION:** Ask user if phases look correct before proceeding.
+
+---
+
 ### Step 3: Phase Execution Loop — THE CORE
 
-**For EACH phase, execute ALL steps in sequence. No skipping.**
+**For EACH phase in the phase list, execute ALL steps in sequence. No skipping.**
+
+**Execution Pattern:**
+```
+for each phase in phase_list:
+    1. Step 3.1: Phase Start (load artifacts)
+    2. Step 3.2: DB Layer + Tests
+    3. Step 3.3: API Layer + Tests
+    4. Step 3.4: UI Layer + Tests
+    5. Step 3.5: E2E Tests
+    6. Step 3.6: Regression Suite
+    7. Step 3.7: ADR Compliance
+    8. Step 3.8: Local Verification
+    9. Step 3.9: Phase Gate
+    → Only proceed to next phase if gate passes
+```
 
 #### Step 3.1: Phase Start
 
@@ -649,7 +699,7 @@ Artifacts for this phase:
   Plan:    devflow/specs/<name>-plan.md (architecture)
   Tasks:   devflow/epics/<name>/0XX.md - 0YY.md
   ADRs:    devflow/adrs/ADR-*.md (decisions to follow)
-  Design:  devflow/design/*.md (UI specs, if applicable)
+  Design:  devflow/designs/*.md + src/app/models/*.ts (UI specs + types)
 
 User Stories in this phase:
   - US-00X: [title] ([N] acceptance criteria)
@@ -798,9 +848,11 @@ If ANY test fails: STOP. Fix. Re-run. DO NOT PROCEED.
 **FIRST: Load Design Artifacts**
 
 Before writing any UI code, read and apply:
-1. `devflow/design/tokens.md` — Use defined colors, typography, spacing
-2. `devflow/design/shell.md` — Follow app shell layout structure
-3. `devflow/design/sections/<feature>.md` — Follow section-specific UI specs
+1. `tailwind.config.js` + `src/styles/tokens.css` — Use defined colors, typography, spacing
+2. `src/app/layout/` — Follow app shell layout structure
+3. `devflow/designs/<feature>.md` — Follow section-specific UI specs
+4. `src/app/models/<feature>.models.ts` — Use TypeScript interfaces
+5. `src/app/mocks/<feature>.mock.ts` — Use mock data for development
 
 **Then create UI components following the design specs:**
 - Angular/React components (matching design tokens)
