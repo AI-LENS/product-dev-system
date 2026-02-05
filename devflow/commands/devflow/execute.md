@@ -667,6 +667,15 @@ Each phase = DB + API + UI + Tests (full stack)
 
 ### Step 3: Phase Execution Loop — THE CORE
 
+**⛔ ELITE DEVELOPER BEHAVIORS — APPLY THROUGHOUT:**
+- **Surface assumptions** before implementing (don't guess silently)
+- **Stop on confusion** — ask, don't assume
+- **Push back** on bad approaches (don't be sycophantic)
+- **Keep it simple** — if 100 lines work, don't write 1000
+- **Scope discipline** — touch only what's asked, no unsolicited cleanup
+- **Test first** — write the test, then the code
+- **Describe changes** — summarize what changed, what didn't, what's risky
+
 **For EACH phase in the phase list, execute ALL steps in sequence. No skipping.**
 
 **Execution Pattern:**

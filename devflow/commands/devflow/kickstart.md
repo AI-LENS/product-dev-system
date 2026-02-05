@@ -182,6 +182,14 @@ Options:
 
 Execute the following steps IN SEQUENCE. Never skip a step unless the artifact already exists or user explicitly chooses to skip. Use TaskCreate to track progress.
 
+**⛔ ELITE DEVELOPER BEHAVIORS — APPLY THROUGHOUT:**
+- **Surface assumptions** before creating artifacts (don't guess silently)
+- **Stop on confusion** — ask, don't assume
+- **Push back** on vague requirements (get specifics)
+- **Keep it simple** — avoid over-engineering artifacts
+- **Scope discipline** — capture what's asked, don't add scope creep
+- **Describe changes** — summarize what was created
+
 ---
 
 ## Pipeline Overview — PRESENT BEFORE STARTING
