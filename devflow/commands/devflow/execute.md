@@ -673,7 +673,7 @@ Each phase = DB + API + UI + Tests (full stack)
 - **Push back** on bad approaches (don't be sycophantic)
 - **Keep it simple** — if 100 lines work, don't write 1000
 - **Scope discipline** — touch only what's asked, no unsolicited cleanup
-- **Test first** — write the test, then the code
+- **TDD** — Red (write failing test) → Green (minimal code to pass) → Refactor
 - **Describe changes** — summarize what changed, what didn't, what's risky
 
 **For EACH phase in the phase list, execute ALL steps in sequence. No skipping.**
@@ -727,54 +727,90 @@ Starting Phase {N}...
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
-#### Step 3.2: Build Database Layer
+#### Step 3.2: Build Database Layer (TDD)
 
 **FIRST: Load Required Artifacts**
 
-Before writing any DB code, read:
+Before writing any code, read:
 1. `devflow/specs/<name>-plan.md` — Data Model section (entities, relationships, indexes)
 2. `devflow/specs/<name>.md` — Key Entities table
 3. `devflow/adrs/ADR-*-database*.md` — Database-related ADRs
 4. `devflow/epics/<name>/*.md` — Task files for this phase (DB tasks)
 
-**Then create DB components matching the plan:**
-- SQLAlchemy models (matching plan's data model exactly)
-- Alembic migrations (tables, indexes as specified)
-- Apply migrations
-- Seed data (if needed)
+**TDD PROCESS — For EACH model/entity:**
 
-**DB Layer Checklist:**
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ TDD CYCLE FOR DB LAYER                                                      │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│ For EACH entity in the plan's data model:                                   │
+│                                                                             │
+│   1. RED: Write failing test first                                          │
+│      ├─ Create tests/unit/test_models_<entity>.py                           │
+│      ├─ Write test for model creation, fields, relationships                │
+│      ├─ Run: pytest tests/unit/test_models_<entity>.py -v                   │
+│      └─ VERIFY: Test FAILS (model doesn't exist yet)                        │
+│                                                                             │
+│   2. GREEN: Write minimal model to pass                                     │
+│      ├─ Create app/models/<entity>.py                                       │
+│      ├─ Implement only what's needed to pass the test                       │
+│      ├─ Run: pytest tests/unit/test_models_<entity>.py -v                   │
+│      └─ VERIFY: Test PASSES                                                 │
+│                                                                             │
+│   3. REFACTOR: Clean up while staying green                                 │
+│      ├─ Improve code quality, add docstrings                                │
+│      ├─ Run tests after each change                                         │
+│      └─ VERIFY: Tests still PASS                                            │
+│                                                                             │
+│   → Repeat for next entity                                                  │
+│                                                                             │
+│ After ALL models complete:                                                  │
+│   4. Create Alembic migration                                               │
+│   5. Write migration test (RED → GREEN → REFACTOR)                          │
+│   6. Apply migration                                                        │
+│   7. Add seed data if needed                                                │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+**Example TDD Flow for User Model:**
+```python
+# 1. RED: Write test first (tests/unit/test_models_user.py)
+def test_user_model_creation():
+    user = User(email="test@example.com", name="Test")
+    assert user.email == "test@example.com"
+    assert user.name == "Test"
+
+def test_user_has_posts_relationship():
+    user = User(email="test@example.com", name="Test")
+    assert hasattr(user, 'posts')
+
+# Run: pytest → FAILS (User doesn't exist)
+
+# 2. GREEN: Write minimal model (app/models/user.py)
+class User(Base):
+    __tablename__ = "users"
+    id = Column(Integer, primary_key=True)
+    email = Column(String, nullable=False)
+    name = Column(String)
+    posts = relationship("Post", back_populates="author")
+
+# Run: pytest → PASSES
+
+# 3. REFACTOR: Add indexes, constraints, docstrings
+# Run: pytest → Still PASSES
+```
+
+**DB Layer Checklist (TDD):**
+- [ ] Each model has test file written BEFORE model code
+- [ ] Each test failed first (RED), then passed (GREEN)
 - [ ] All entities from plan's data model created
 - [ ] Relationships match plan (1:N, N:M, etc.)
 - [ ] Indexes created as specified in plan
 - [ ] Field types match spec's entity definitions
 - [ ] Follows ADR database decisions
-
-**MANDATORY: DB Layer Tests**
-
-```bash
-# 1. Unit Tests for Models (MANDATORY)
-pytest tests/unit/test_models*.py -v --tb=short --cov=app/models --cov-report=term-missing
-
-# 2. Migration Tests (MANDATORY)
-pytest tests/integration/test_db*.py -v --tb=short
-
-# 3. Verify coverage meets threshold
-python -c "
-import sys
-coverage = float(sys.argv[1])
-if coverage < 80:
-    print(f'FAIL: Coverage {coverage}% < 80% required')
-    sys.exit(1)
-print(f'PASS: Coverage {coverage}% >= 80%')
-"
-```
-
-**DB Layer Test Checklist:**
-- [ ] Unit tests: Every model class has a test file
-- [ ] Unit tests: All model methods are tested
-- [ ] Unit tests: Relationships are tested (1:N, N:M)
-- [ ] Unit tests: Validation rules are tested
+- [ ] Coverage >= 80%
 - [ ] Unit tests: Edge cases tested (null, empty, max length)
 - [ ] Integration tests: Migrations apply cleanly
 - [ ] Integration tests: Seed data loads correctly
@@ -789,59 +825,90 @@ If ANY test fails OR coverage < 80%: STOP. Fix. Re-run. DO NOT PROCEED.
 
 **Do NOT proceed to API Layer without explicit user approval.**
 
-#### Step 3.3: Build API Layer
+#### Step 3.3: Build API Layer (TDD)
 
 **FIRST: Load Required Artifacts**
 
-Before writing any API code, read:
+Before writing any code, read:
 1. `devflow/specs/<name>-plan.md` — API Design section (endpoints, auth, versioning)
 2. `devflow/specs/<name>.md` — Functional Requirements (FR-xxx) for this phase
 3. `devflow/adrs/ADR-*-api*.md` or `ADR-*-auth*.md` — API/Auth ADRs
 4. `devflow/epics/<name>/*.md` — Task files for this phase (API tasks)
 
-**Then create API components matching the plan:**
-- Pydantic schemas (request/response matching plan's API design)
-- Service layer (business logic implementing FR-xxx requirements)
-- API endpoints (paths, methods, auth as specified in plan)
-- Authentication/authorization (following auth ADR)
+**TDD PROCESS — For EACH endpoint:**
 
-**API Layer Checklist:**
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ TDD CYCLE FOR API LAYER                                                     │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│ For EACH endpoint in the plan's API design:                                 │
+│                                                                             │
+│   1. RED: Write failing tests first                                         │
+│      ├─ Schema test: tests/unit/test_schemas_<resource>.py                  │
+│      ├─ Service test: tests/unit/test_services_<resource>.py                │
+│      ├─ Endpoint test: tests/unit/test_api_<resource>.py                    │
+│      ├─ Run: pytest tests/unit/test_*_<resource>.py -v                      │
+│      └─ VERIFY: Tests FAIL (nothing implemented yet)                        │
+│                                                                             │
+│   2. GREEN: Write minimal code to pass                                      │
+│      ├─ Create app/schemas/<resource>.py (Pydantic models)                  │
+│      ├─ Create app/services/<resource>.py (business logic)                  │
+│      ├─ Create app/api/endpoints/<resource>.py (FastAPI routes)             │
+│      ├─ Run: pytest tests/unit/test_*_<resource>.py -v                      │
+│      └─ VERIFY: Tests PASS                                                  │
+│                                                                             │
+│   3. REFACTOR: Clean up while staying green                                 │
+│      ├─ Improve code, add validation, error handling                        │
+│      ├─ Run tests after each change                                         │
+│      └─ VERIFY: Tests still PASS                                            │
+│                                                                             │
+│   → Repeat for next endpoint                                                │
+│                                                                             │
+│ After ALL endpoints complete:                                               │
+│   4. Write integration tests (RED → GREEN → REFACTOR)                       │
+│   5. Generate/update OpenAPI spec                                           │
+│   6. Run OpenAPI validation                                                 │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+**Example TDD Flow for Users Endpoint:**
+```python
+# 1. RED: Write test first (tests/unit/test_api_users.py)
+def test_create_user_returns_201():
+    response = client.post("/api/v1/users", json={"email": "test@example.com"})
+    assert response.status_code == 201
+    assert response.json()["email"] == "test@example.com"
+
+def test_create_user_invalid_email_returns_422():
+    response = client.post("/api/v1/users", json={"email": "invalid"})
+    assert response.status_code == 422
+
+# Run: pytest → FAILS (endpoint doesn't exist)
+
+# 2. GREEN: Write minimal endpoint
+@router.post("/users", status_code=201)
+def create_user(user: UserCreate, db: Session = Depends(get_db)):
+    return user_service.create(db, user)
+
+# Run: pytest → PASSES
+
+# 3. REFACTOR: Add auth, validation, error handling
+# Run: pytest → Still PASSES
+```
+
+**API Layer Checklist (TDD):**
+- [ ] Each endpoint has test file written BEFORE implementation
+- [ ] Each test failed first (RED), then passed (GREEN)
 - [ ] All endpoints from plan created
 - [ ] Request/response schemas match plan
 - [ ] Each endpoint traces to FR-xxx requirement
 - [ ] Auth requirements implemented per ADR
 - [ ] API versioning follows plan (e.g., /api/v1/)
 - [ ] Error responses match plan's error taxonomy
-
-**MANDATORY: API Layer Tests**
-
-```bash
-# 1. Unit Tests (MANDATORY)
-pytest tests/unit/test_services*.py -v --tb=short
-pytest tests/unit/test_schemas*.py -v --tb=short
-pytest tests/unit/test_api*.py -v --tb=short
-
-# 2. Integration Tests (MANDATORY)
-pytest tests/integration/test_api*.py -v --tb=short
-
-# 3. OpenAPI Validation (MANDATORY)
-python -c "
-from openapi_spec_validator import validate_spec
-import json
-with open('openapi.json') as f:
-    validate_spec(json.load(f))
-print('OpenAPI spec is valid')
-"
-pytest tests/contract/test_openapi_compliance.py -v --tb=short
-```
-
-**API Layer Test Checklist:**
-- [ ] Unit tests: All services have tests
-- [ ] Unit tests: All schemas have tests
-- [ ] Unit tests: All endpoints have tests
-- [ ] Integration tests: All API flows tested
-- [ ] OpenAPI validation: Spec is valid
-- [ ] OpenAPI validation: Endpoints match spec
+- [ ] OpenAPI validation passes
+- [ ] Integration tests pass
 
 If ANY test fails: STOP. Fix. Re-run. DO NOT PROCEED.
 
@@ -852,57 +919,103 @@ If ANY test fails: STOP. Fix. Re-run. DO NOT PROCEED.
 
 **Do NOT proceed to UI Layer without explicit user approval.**
 
-#### Step 3.4: Build UI Layer (if applicable)
+#### Step 3.4: Build UI Layer (TDD) (if applicable)
 
 **FIRST: Load Design Artifacts**
 
-Before writing any UI code, read and apply:
+Before writing any code, read and apply:
 1. `tailwind.config.js` + `src/styles/tokens.css` — Use defined colors, typography, spacing
 2. `src/app/layout/` — Follow app shell layout structure
 3. `devflow/designs/<feature>.md` — Follow section-specific UI specs
 4. `src/app/models/<feature>.models.ts` — Use TypeScript interfaces
 5. `src/app/mocks/<feature>.mock.ts` — Use mock data for development
 
-**Then create UI components following the design specs:**
-- Angular/React components (matching design tokens)
-- Pages (following shell layout)
-- State management
-- API integration
+**TDD PROCESS — For EACH component:**
 
-**Component Checklist:**
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ TDD CYCLE FOR UI LAYER                                                      │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│ For EACH component in the design specs:                                     │
+│                                                                             │
+│   1. RED: Write failing test first                                          │
+│      ├─ Create <component>.spec.ts (Angular) or <component>.test.tsx (React)│
+│      ├─ Write test for rendering, props, user interactions                  │
+│      ├─ Run: ng test / npm test                                             │
+│      └─ VERIFY: Test FAILS (component doesn't exist yet)                    │
+│                                                                             │
+│   2. GREEN: Write minimal component to pass                                 │
+│      ├─ Create component with only what's needed to pass test               │
+│      ├─ Use design tokens, TypeScript interfaces from models                │
+│      ├─ Run: ng test / npm test                                             │
+│      └─ VERIFY: Test PASSES                                                 │
+│                                                                             │
+│   3. REFACTOR: Polish while staying green                                   │
+│      ├─ Add styling, accessibility, responsive behavior                     │
+│      ├─ Run tests after each change                                         │
+│      └─ VERIFY: Tests still PASS                                            │
+│                                                                             │
+│   → Repeat for next component                                               │
+│                                                                             │
+│ After ALL components complete:                                              │
+│   4. Write contract tests (RED → GREEN → REFACTOR)                          │
+│   5. Run schema sync validation                                             │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+**Example TDD Flow for UserList Component:**
+```typescript
+// 1. RED: Write test first (user-list.component.spec.ts)
+describe('UserListComponent', () => {
+  it('should render list of users', () => {
+    const users = [{ id: '1', name: 'Test User' }];
+    const { getByText } = render(<UserList users={users} />);
+    expect(getByText('Test User')).toBeInTheDocument();
+  });
+
+  it('should call onDelete when delete button clicked', () => {
+    const onDelete = jest.fn();
+    const { getByRole } = render(<UserList users={[...]} onDelete={onDelete} />);
+    fireEvent.click(getByRole('button', { name: /delete/i }));
+    expect(onDelete).toHaveBeenCalled();
+  });
+});
+
+// Run: npm test → FAILS (component doesn't exist)
+
+// 2. GREEN: Write minimal component
+export function UserList({ users, onDelete }: UserListProps) {
+  return (
+    <ul>
+      {users.map(user => (
+        <li key={user.id}>
+          {user.name}
+          <button onClick={() => onDelete?.(user.id)}>Delete</button>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+// Run: npm test → PASSES
+
+// 3. REFACTOR: Add design tokens, accessibility
+// Run: npm test → Still PASSES
+```
+
+**UI Layer Checklist (TDD):**
+- [ ] Each component has test file written BEFORE component code
+- [ ] Each test failed first (RED), then passed (GREEN)
 - [ ] Uses design tokens (not hardcoded colors/fonts)
 - [ ] Follows shell layout structure
 - [ ] Matches section spec wireframes
 - [ ] Responsive breakpoints per design
 - [ ] Accessibility (ARIA labels, keyboard nav)
-
-**MANDATORY: UI Layer Tests**
-
-```bash
-# 1. Unit Tests (MANDATORY)
-npm test -- --coverage
-# or for Angular:
-ng test --code-coverage
-
-# 2. Contract Tests - Frontend ↔ Backend (MANDATORY)
-pytest tests/contract/test_frontend_backend_contract.py -v --tb=short
-
-# 3. Schema Sync Tests - TypeScript ↔ Pydantic (MANDATORY)
-# First generate TypeScript types from Pydantic models
-python scripts/generate_ts_types.py
-# Then run sync validation
-pytest tests/contract/test_schema_sync.py -v --tb=short
-```
-
-**UI Layer Test Checklist:**
-- [ ] Unit tests: All components have tests
-- [ ] Unit tests: All services have tests
 - [ ] Unit tests: Coverage >= 80%
 - [ ] Contract tests: Frontend requests match backend schemas
-- [ ] Contract tests: Response handling matches expected format
 - [ ] Schema sync: TypeScript interfaces match Pydantic models
-- [ ] Schema sync: Field names align (camelCase ↔ snake_case)
-- [ ] Schema sync: Required/optional fields match
 
 If ANY test fails: STOP. Fix. Re-run. DO NOT PROCEED.
 

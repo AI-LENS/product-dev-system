@@ -87,15 +87,42 @@ PLAN:
 → Executing unless you redirect.
 ```
 
-### 1.8 Test-First Leverage
+### 1.8 Test-Driven Development (TDD) — MANDATORY
 
-When implementing non-trivial logic:
+Follow the Red-Green-Refactor cycle for ALL code:
 
-1. Write the test that defines success
-2. Implement until the test passes
-3. Show both
+```
+┌─────────────────────────────────────────────────────┐
+│  TDD CYCLE — Repeat for each function/feature      │
+├─────────────────────────────────────────────────────┤
+│                                                     │
+│  1. RED: Write a failing test                       │
+│     - Test defines expected behavior                │
+│     - Run test → it MUST fail (no implementation)  │
+│     - If test passes, something is wrong            │
+│                                                     │
+│  2. GREEN: Write minimal code to pass              │
+│     - Only enough code to make test pass            │
+│     - No extra features, no optimization            │
+│     - Run test → it MUST pass                       │
+│                                                     │
+│  3. REFACTOR: Improve while staying green          │
+│     - Clean up code, remove duplication             │
+│     - Run tests after each change → MUST stay green │
+│     - No new functionality in this phase            │
+│                                                     │
+│  → Repeat for next function/feature                 │
+│                                                     │
+└─────────────────────────────────────────────────────┘
+```
 
-**Tests are your loop condition. Use them.**
+**Rules:**
+- Never write production code without a failing test first
+- Never write more test than needed to fail
+- Never write more code than needed to pass
+- Tests are documentation — they define what the code should do
+
+**Speed is not important. Robustness is.**
 
 ### 1.9 Naive Then Optimize
 
