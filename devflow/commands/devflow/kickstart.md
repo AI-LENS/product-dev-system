@@ -485,45 +485,429 @@ During execution, gates will verify:
 - No ADR violations
 - ADR status updated from "proposed" to "accepted" when implemented
 
-### Step 9: Design (conditional)
+### Step 9: Design — MANDATORY (NOT OPTIONAL)
 
-**Scope: library** — Skip entirely. Print: `Library scope — no design phase.`
+**⛔ CRITICAL: Design phase is MANDATORY for product and feature scopes. It CANNOT be skipped.**
 
-**Scope: product/feature:**
+The design phase ensures all UI decisions are made BEFORE implementation, preventing:
+- Generic, unmemorable UIs
+- Design decisions buried in code
+- Inconsistent user experiences
+- Costly rework during implementation
 
-**FIRST: Load artifacts for design context**
-Read:
+**Scope: library** — Skip design phase. Print: `Library scope — no UI, skipping design phase.`
+
+**Scope: product/feature** — Design is REQUIRED. Do NOT ask if user wants to skip. Proceed with the full design sequence below.
+
+---
+
+#### Design Phase Prerequisites
+
+**FIRST: Load and verify these artifacts exist:**
+- `devflow/prds/<name>.md` — User personas, constraints, product vision
 - `devflow/specs/<name>.md` — User stories (what users need to do)
-- `devflow/specs/<name>-plan.md` — Tech stack, project structure
-- `devflow/prds/<name>.md` — User personas, constraints
+- `devflow/specs/<name>-plan.md` — Tech stack, project structure, data model
 
-**Scope: product** — Ask: "Ready to design the UI? (recommended)"
+If any are missing: STOP. Cannot proceed with design without these artifacts.
 
-**Scope: feature** — Ask: "Does this feature include a user interface?"
+---
 
-- **If yes:** Run design sub-sequence with MANDATORY probing questions:
+#### Design Sub-Sequence — ALL STEPS ARE MANDATORY
 
-  **⚠️ CRITICAL: Each design command has mandatory probing questions that MUST be answered.**
-  **Do NOT rush through design. Do NOT skip questions. Do NOT use defaults without explicit user request.**
+**⛔ ENFORCEMENT: Every step below MUST be completed. No skipping. No shortcuts.**
 
-  1. `/design:design-tokens` — Create/verify design token system
-     - **11 mandatory questions** about brand, colors, typography
-     - Gate: All questions answered before generating tokens
+```
+┌────────────────────────────────────────────────────────────────────────────┐
+│ DESIGN PHASE FLOW — MANDATORY SEQUENCE                                    │
+├────────────────────────────────────────────────────────────────────────────┤
+│                                                                            │
+│  Step 9.1: Design Tokens                                                   │
+│    │  Colors, typography, spacing, visual identity                         │
+│    │  11 mandatory probing questions                                       │
+│    │  🚦 GATE: All questions answered + user confirmed                     │
+│    ▼                                                                       │
+│  Step 9.2: Design Shell (product scope, or if no shell exists)            │
+│    │  Navigation, layout, responsive behavior                              │
+│    │  18 mandatory probing questions                                       │
+│    │  🚦 GATE: All questions answered + user confirmed                     │
+│    ▼                                                                       │
+│  Step 9.2a: Section Identification                                        │
+│    │  Extract all sections from plan/spec                                  │
+│    │  🚦 GATE: Section list confirmed by user                              │
+│    ▼                                                                       │
+│  Step 9.3: Shape Sections (for EACH section)                              │
+│    │  User flows, UI requirements, interactions                            │
+│    │  17 mandatory probing questions PER SECTION                           │
+│    │  Output: devflow/designs/<section>.md                                 │
+│    │  🚦 GATE: All questions answered + user confirmed (per section)       │
+│    ▼                                                                       │
+│  Step 9.4: Sample Data (for EACH section)                                 │
+│    │  Realistic mock data + TypeScript interfaces                          │
+│    │  Output: models, mocks, factories, fixtures                           │
+│    │  🚦 GATE: All files generated + user confirmed                        │
+│    ▼                                                                       │
+│  Step 9.5: Design Screens (for EACH section)                              │
+│    │  Actual screen components with design tokens applied                  │
+│    │  Output: src/app/features/<section>/                                  │
+│    │  🚦 GATE: All screens created + user confirmed                        │
+│    ▼                                                                       │
+│  ✅ Design Phase Complete — Artifacts ready for Execution                  │
+│                                                                            │
+└────────────────────────────────────────────────────────────────────────────┘
+```
 
-  2. `/design:design-shell` — Design app shell layout (product scope only, skip for feature if shell exists)
-     - **18 mandatory questions** about navigation, layout, responsiveness
-     - Gate: All questions answered before generating shell
+---
 
-  3. Ask which sections need UI specs, then for each:
-     - `/design:shape-section <section>` — Per-section UI spec
-     - **17 mandatory questions** about data, actions, edge cases, layout
-     - Gate: All questions answered before generating section spec
+#### Step 9.1: Design Tokens — MANDATORY
 
-  4. `/design:export` — Generate handoff package
+Run `/design:design-tokens`
 
-  **Design Phase Gate:** All design artifacts created with full question coverage.
+**Purpose:** Establish visual identity (colors, typography, spacing) BEFORE any UI work.
 
-- **If no/skip:** Skip design phase entirely.
+**Requirements:**
+- **11 mandatory probing questions** covering:
+  - Brand personality and target audience
+  - Emotional response desired
+  - Primary, secondary, neutral colors
+  - Typography preferences
+  - Visual density and corner styles
+  - Dark mode requirements
+- ALL questions must be answered — no defaults without explicit request
+- User must confirm the token summary
+
+**🚦 GATE:** Do NOT proceed to Step 9.2 until user confirms tokens.
+
+---
+
+#### Step 9.2: Design Shell — MANDATORY (product) / CONDITIONAL (feature)
+
+Run `/design:design-shell`
+
+**Scope: product** — MANDATORY. The shell is the foundation of the entire UI.
+**Scope: feature** — Check if shell exists. If yes, skip. If no, MANDATORY.
+
+**Requirements:**
+- **18 mandatory probing questions** covering:
+  - Application type, session behavior, navigation depth
+  - Primary navigation items, global actions
+  - User menu, multi-tenant switching
+  - Notifications, real-time requirements
+  - Device support (desktop, tablet, mobile)
+  - Logo, brand colors, footer
+- ALL questions must be answered
+- User must confirm the shell design
+
+**🚦 GATE:** Do NOT proceed to Step 9.3 until user confirms shell.
+
+---
+
+#### Step 9.2a: Section Identification — MANDATORY BEFORE PROCEEDING
+
+**⛔ CRITICAL: You MUST identify all sections BEFORE proceeding with Steps 9.3-9.5.**
+
+**Section Extraction Process:**
+
+1. **Read the Plan** (`devflow/specs/<name>-plan.md`):
+   - Look for "Features", "Sections", "Modules", or "Pages" headings
+   - Extract each distinct UI area that users interact with
+
+2. **Read the Spec** (`devflow/specs/<name>.md`):
+   - Look for user stories grouped by area
+   - Identify unique screens/sections mentioned
+
+3. **Compile Section List:**
+   ```
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   📋 IDENTIFIED SECTIONS FOR DESIGN
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+   Based on the plan and spec, the following sections need design:
+
+   1. [section-name-1] — [brief description]
+   2. [section-name-2] — [brief description]
+   3. [section-name-3] — [brief description]
+   ...
+
+   Total: [N] sections
+
+   Each section will go through:
+     → Shape Section (17 questions)
+     → Sample Data (types + mock data)
+     → Design Screen (components)
+
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   ```
+
+4. **Get User Confirmation:**
+   Use AskUserQuestion:
+   ```
+   Question: "Are these the correct sections to design?"
+   Header: "Sections"
+   Options:
+     - "Yes, proceed with these [N] sections" (Recommended)
+     - "Add more sections"
+     - "Remove some sections"
+   ```
+
+**Store the section list** — you will iterate over it in Steps 9.3, 9.4, and 9.5.
+
+---
+
+#### Step 9.3: Shape Sections — MANDATORY FOR EACH SECTION
+
+**⛔ ITERATE THROUGH EVERY SECTION — NO EXCEPTIONS**
+
+For EACH section in the list from Step 9.2a, run `/design:shape-section <section>`
+
+**Execution Pattern:**
+```
+for each section in section_list:
+    1. Run /design:shape-section <section>
+    2. Answer ALL 17 probing questions
+    3. VERIFY artifact created: devflow/designs/<section>.md
+    4. Get user confirmation for this section
+    5. Only then move to next section
+```
+
+**Purpose:** Define user flows, UI requirements, and interactions for each feature area.
+
+**Requirements per section:**
+- **17 mandatory probing questions** covering:
+  - Section purpose, user roles, access patterns
+  - Data volume, freshness, relationships
+  - CRUD operations, critical actions, workflow states
+  - Empty states, error handling, loading states
+  - Layout preferences, detail views, navigation
+  - Mobile and accessibility requirements
+- ALL questions answered for EACH section
+- User must confirm each section spec
+
+**Artifact Verification:**
+```bash
+# After each section, verify the file exists:
+ls -la devflow/designs/<section>.md
+```
+
+If file does NOT exist, STOP and investigate before proceeding.
+
+**Section Progress Tracker:**
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📊 SHAPE SECTIONS PROGRESS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Section                | Status      | Artifact
+-----------------------|-------------|---------------------------
+[section-1]            | ✅ Complete | devflow/designs/section-1.md
+[section-2]            | ✅ Complete | devflow/designs/section-2.md
+[section-3]            | 🔄 Current  | (in progress)
+[section-4]            | ⏳ Pending  | —
+[section-5]            | ⏳ Pending  | —
+
+Progress: 2/5 sections complete
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+**🚦 GATE per section:** Do NOT proceed to next section until:
+1. All 17 questions answered ✓
+2. `devflow/designs/<section>.md` exists ✓
+3. User explicitly confirms section spec ✓
+
+**🚦 GATE for Step 9.3 completion:** ALL sections must be shaped before proceeding to Step 9.4.
+
+---
+
+#### Step 9.4: Sample Data — MANDATORY FOR EACH SECTION
+
+**⛔ PREREQUISITE CHECK — MANDATORY BEFORE EACH SECTION**
+
+For EACH section in the list, run `/design:sample-data <section>`
+
+**Execution Pattern:**
+```
+for each section in section_list:
+    1. VERIFY prerequisite exists: devflow/designs/<section>.md
+       - If MISSING: STOP. "Cannot generate sample data for '<section>' —
+         section spec not found. Run /design:shape-section <section> first."
+    2. Run /design:sample-data <section>
+    3. Present proposed data structure, get user confirmation
+    4. VERIFY artifacts created:
+       - src/app/models/<section>.models.ts
+       - src/app/mocks/<section>.mock.ts
+       - src/app/mocks/<section>.factory.ts
+       - src/app/mocks/fixtures/<section>-list.json
+    5. Get user confirmation
+    6. Only then move to next section
+```
+
+**Purpose:** Generate realistic mock data AND TypeScript interfaces for type safety.
+
+**Requirements per section:**
+
+1. **Read section spec** from `devflow/designs/<section>.md`
+2. **Extract entities** and their relationships
+3. **Present data structure** to user for confirmation BEFORE generating files
+4. **Generate TypeScript interfaces** (`src/app/models/<section>.models.ts`):
+   - Entity interfaces matching backend models
+   - Create/Update DTOs
+   - Props interfaces with callback types
+   - Enums for status/type fields
+5. **Generate mock data** (`src/app/mocks/<section>.mock.ts`):
+   - 10-20 realistic records per entity
+   - Varied statuses, dates, relationships
+6. **Generate factory functions** (`src/app/mocks/<section>.factory.ts`):
+   - `create<Entity>()` for single entity
+   - `create<Entities>(count)` for arrays
+   - `createPaginatedResponse()` for lists
+7. **Generate JSON fixtures** (`src/app/mocks/fixtures/`):
+   - `<section>-list.json` — paginated list
+   - `<section>-detail.json` — single item
+   - `<section>-empty.json` — empty state
+   - `<section>-error-404.json` — not found
+   - `<section>-error-422.json` — validation error
+
+**Artifact Verification:**
+```bash
+# After each section, verify ALL files exist:
+ls -la src/app/models/<section>.models.ts
+ls -la src/app/mocks/<section>.mock.ts
+ls -la src/app/mocks/<section>.factory.ts
+ls -la src/app/mocks/fixtures/<section>-*.json
+```
+
+**Section Progress Tracker:**
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📊 SAMPLE DATA PROGRESS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Section     | Prereq    | Models | Mocks | Factory | Fixtures
+------------|-----------|--------|-------|---------|----------
+[section-1] | ✅ Found  | ✅     | ✅    | ✅      | ✅ (5 files)
+[section-2] | ✅ Found  | ✅     | ✅    | ✅      | ✅ (5 files)
+[section-3] | ✅ Found  | 🔄     | ⏳    | ⏳      | ⏳
+[section-4] | ⏳ Pending| —      | —     | —       | —
+[section-5] | ⏳ Pending| —      | —     | —       | —
+
+Progress: 2/5 sections complete
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+**🚦 GATE per section:** Do NOT proceed to next section until:
+1. Section spec exists (`devflow/designs/<section>.md`) ✓
+2. Data structure confirmed by user ✓
+3. ALL artifacts created (models, mocks, factory, fixtures) ✓
+4. User explicitly confirms ✓
+
+**🚦 GATE for Step 9.4 completion:** ALL sections must have sample data before proceeding to Step 9.5.
+
+---
+
+#### Step 9.5: Design Screens — MANDATORY FOR EACH SECTION
+
+**⛔ PREREQUISITE CHECK — MANDATORY BEFORE EACH SECTION**
+
+For EACH section in the list, run `/design:design-screen <section>`
+
+**Execution Pattern:**
+```
+for each section in section_list:
+    1. VERIFY prerequisites exist:
+       - devflow/designs/<section>.md (section spec)
+       - src/app/models/<section>.models.ts (TypeScript types)
+       - src/app/mocks/<section>.mock.ts (mock data)
+       If ANY missing: STOP and list what's missing.
+    2. Run /design:design-screen <section>
+    3. VERIFY screen components created
+    4. Get user confirmation
+    5. Only then move to next section
+```
+
+**Purpose:** Create actual screen components with design tokens applied.
+
+**Requirements per section:**
+- Apply design tokens (colors, typography) to all components
+- Create props-based components (portable, reusable)
+- Import and use types from `<section>.models.ts`
+- Use mock data from `<section>.mock.ts` for development
+- Include all UI states (loading, error, empty, success)
+- Mobile responsive using Tailwind breakpoints
+- Light and dark mode support
+- User must confirm each screen design
+
+**Artifact Verification:**
+```bash
+# After each section, verify screen components exist
+ls -la src/app/features/<section>/
+# Should contain: component files, page files, routing
+```
+
+**Section Progress Tracker:**
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📊 DESIGN SCREENS PROGRESS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Section     | Spec | Types | Mocks | Screens | States
+------------|------|-------|-------|---------|--------
+[section-1] | ✅   | ✅    | ✅    | ✅      | loading/error/empty ✅
+[section-2] | ✅   | ✅    | ✅    | ✅      | loading/error/empty ✅
+[section-3] | ✅   | ✅    | ✅    | 🔄      | (in progress)
+[section-4] | ✅   | ✅    | ✅    | ⏳      | —
+[section-5] | ✅   | ✅    | ✅    | ⏳      | —
+
+Progress: 2/5 sections complete
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+**🚦 GATE per section:** Do NOT proceed to next section until:
+1. All prerequisites exist (spec, types, mocks) ✓
+2. Screen components created ✓
+3. All UI states implemented (loading, error, empty) ✓
+4. User explicitly confirms ✓
+
+**🚦 GATE for Step 9.5 completion:** ALL sections must have screens before proceeding to Design Phase Summary.
+
+---
+
+#### Design Phase Summary
+
+After completing all design steps (9.1-9.5), present:
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ DESIGN PHASE COMPLETE: <name>
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Artifacts Created:
+  ✓ Design Tokens:
+    - tailwind.config.js (color palette, DaisyUI themes)
+    - src/styles/tokens.css (CSS custom properties)
+  ✓ Design Shell:
+    - src/app/layout/ (shell components)
+  ✓ Sections Shaped: [N] sections
+    - devflow/designs/<section>.md (per section spec)
+  ✓ Sample Data: [N] sections
+    - src/app/models/<section>.models.ts (TypeScript interfaces)
+    - src/app/mocks/<section>.mock.ts (mock data)
+    - src/app/mocks/<section>.factory.ts (factory functions)
+    - src/app/mocks/fixtures/<section>-*.json (JSON fixtures)
+  ✓ Screen Designs: [N] component sets
+    - src/app/features/<section>/ (per section)
+
+Questions Answered:
+  - Design Tokens: 11/11 ✓
+  - Design Shell: 18/18 ✓
+  - Sections: 17 × [N] = [total] ✓
+
+These artifacts are ready for the Execution Phase.
+No separate export step needed — artifacts in place.
+
+All design decisions documented BEFORE implementation.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+**🚦 CONFIRMATION REQUIRED:** Ask user to confirm design phase complete.
 
 ### Step 10: Epic Decompose
 
@@ -532,7 +916,7 @@ Read:
 - `devflow/specs/<name>-plan.md` — Architecture, data model, API design (PRIMARY INPUT)
 - `devflow/specs/<name>.md` — User stories, FRs for traceability
 - `devflow/prds/<name>.md` — Original scope for context
-- `devflow/design/*.md` — UI specs (if created)
+- `devflow/designs/*.md` — Section UI specs (if created)
 
 Check if `devflow/epics/<name>/epic.md` exists.
 - **If missing:** Run `/pm:epic-decompose <name>` logic, adapted by scope.

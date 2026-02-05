@@ -16,19 +16,24 @@ Generate TypeScript interfaces, mock data, factory functions, and JSON fixtures 
 **IMPORTANT:** Before executing this command, read and follow:
 - `devflow/rules/design-standards.md` — Component API conventions
 
-## Preflight Checklist
+## Preflight Checklist — MANDATORY PREREQUISITES
+
+**⛔ BLOCKING: Cannot proceed without these prerequisites.**
 
 1. **Validate section name:**
    - `$ARGUMENTS` must be a non-empty string
    - If empty: "Usage: `/design:sample-data <section>` — e.g., `/design:sample-data user-management`"
 
-2. **Locate entity definitions:**
-   - Check spec files in `devflow/specs/`, `devflow/specs/` for entity definitions related to `$ARGUMENTS`
-   - Check section design in `devflow/designs/$ARGUMENTS.md` for data requirements
-   - Check PRDs for entity descriptions
-   - If no entities found, ask user: "What are the key entities for this section? (e.g., User, Role, Permission)"
+2. **Verify section spec exists:**
+   - Check for `devflow/designs/$ARGUMENTS.md` (from `/design:shape-section`)
+   - If missing: STOP. Print: "Section spec for '$ARGUMENTS' not found. Run `/design:shape-section $ARGUMENTS` first."
 
-3. **Detect frontend framework:**
+3. **Check for global data model:**
+   - Check if `devflow/specs/<name>-plan.md` has a data model section
+   - If exists: Use entity names from the plan for consistency
+   - If missing: Warn but continue, create entities based on section spec
+
+4. **Detect frontend framework:**
    - Check `package.json` for `@angular/core` or `react`
    - Determines file naming and import style
 
@@ -36,7 +41,9 @@ Generate TypeScript interfaces, mock data, factory functions, and JSON fixtures 
 
 You are a data architect creating comprehensive mock data for the **$ARGUMENTS** section.
 
-### Step 1: Identify Entities
+**⛔ ENFORCEMENT: You MUST present the proposed data structure and get user confirmation before generating files.**
+
+### Step 1: Identify Entities & Present Proposal
 
 From the spec and section design, extract all entities relevant to `$ARGUMENTS`. For each entity, determine:
 - Entity name (PascalCase)
@@ -44,6 +51,40 @@ From the spec and section design, extract all entities relevant to `$ARGUMENTS`.
 - Relationships to other entities (one-to-one, one-to-many, many-to-many)
 - Required vs optional fields
 - Enum values for status/type fields
+
+**MANDATORY: Present the proposed data structure to the user for confirmation:**
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📊 PROPOSED DATA STRUCTURE: $ARGUMENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Based on the section spec, here's how I'm organizing the data:
+
+**Entities:**
+
+- **[Entity1]** — [Plain-language description of what this represents]
+- **[Entity2]** — [Plain-language description]
+
+**Relationships:**
+
+- [Entity1] has many [Entity2]
+- [Entity2] belongs to [Entity1]
+
+**Actions Available:**
+
+- View, edit, delete [entities]
+- [Other actions from spec]
+
+**Sample Data:**
+
+I'll create [X] realistic records per entity with varied content.
+
+Does this structure make sense? Any adjustments?
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+**🚦 GATE:** Do NOT proceed until user confirms the data structure.
 
 ### Step 2: TypeScript Interfaces
 
@@ -126,6 +167,59 @@ export interface EntityListParams {
 ```
 
 Generate one set of interfaces per entity found in Step 1.
+
+### Step 2b: Component Props Interface with Callbacks
+
+**MANDATORY: Create a Props interface for screen components that includes callback props for all actions.**
+
+```typescript
+// =============================================================================
+// Component Props (for screen designs)
+// =============================================================================
+
+/**
+ * Props for the [SectionName] list/main component.
+ * Includes data props and callback props for all actions.
+ */
+export interface EntityListProps {
+  /** The list of entities to display */
+  entities: EntityName[];
+
+  /** Loading state */
+  loading?: boolean;
+
+  /** Error state */
+  error?: string | null;
+
+  // Action callbacks (optional - for portable components)
+  /** Called when user wants to view an entity's details */
+  onView?: (id: string) => void;
+
+  /** Called when user wants to edit an entity */
+  onEdit?: (id: string) => void;
+
+  /** Called when user wants to delete an entity */
+  onDelete?: (id: string) => void;
+
+  /** Called when user wants to create a new entity */
+  onCreate?: () => void;
+
+  /** Called when user wants to archive an entity */
+  onArchive?: (id: string) => void;
+
+  /** Called when pagination changes */
+  onPageChange?: (page: number) => void;
+
+  /** Called when search/filter changes */
+  onSearch?: (query: string) => void;
+}
+```
+
+**Important:**
+- Callbacks should be optional (`?`) for maximum portability
+- Use optional chaining when calling: `onClick={() => onDelete?.(id)}`
+- Include callbacks for ALL actions mentioned in the section spec
+- JSDoc comments explain when each callback is triggered
 
 ### Step 3: Realistic Mock Data
 
@@ -326,11 +420,33 @@ If developing before backend is ready, create an interceptor:
 
 ### Step 7: Output
 
-Save files to:
+**FIRST: Create directories if they don't exist:**
+```bash
+mkdir -p src/app/models
+mkdir -p src/app/mocks
+mkdir -p src/app/mocks/fixtures
+```
+
+**THEN: Save files to:**
 1. `src/app/models/<section>.models.ts` — TypeScript interfaces
 2. `src/app/mocks/<section>.mock.ts` — Static mock data
 3. `src/app/mocks/<section>.factory.ts` — Factory functions
-4. `src/app/mocks/fixtures/<section>-*.json` — JSON fixtures
+4. `src/app/mocks/fixtures/<section>-list.json` — Paginated list response
+5. `src/app/mocks/fixtures/<section>-detail.json` — Single entity response
+6. `src/app/mocks/fixtures/<section>-empty.json` — Empty state response
+7. `src/app/mocks/fixtures/<section>-error-404.json` — Not found error
+8. `src/app/mocks/fixtures/<section>-error-422.json` — Validation error
+9. `src/app/mocks/fixtures/<section>-search-results.json` — Search results
+
+**VERIFY all files were created:**
+```bash
+ls -la src/app/models/<section>.models.ts
+ls -la src/app/mocks/<section>.mock.ts
+ls -la src/app/mocks/<section>.factory.ts
+ls -la src/app/mocks/fixtures/<section>-*.json
+```
+
+If any file is missing, stop and investigate before proceeding.
 
 ```
 ✅ Sample data generated: $ARGUMENTS

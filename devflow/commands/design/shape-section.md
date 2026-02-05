@@ -464,7 +464,19 @@ For each screen, specify the data needed:
 
 ### Step 7: Output
 
-Save the section design to `devflow/designs/$ARGUMENTS.md` with all sections from Steps 1-6.
+**FIRST: Create directory if it doesn't exist:**
+```bash
+mkdir -p devflow/designs
+```
+
+**THEN: Save the section design to `devflow/designs/$ARGUMENTS.md`** with all sections from Steps 1-6.
+
+**VERIFY file was created:**
+```bash
+ls -la devflow/designs/$ARGUMENTS.md
+```
+
+If file is missing, stop and investigate before proceeding.
 
 ```
 ✅ Section shaped: $ARGUMENTS
